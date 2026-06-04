@@ -1,67 +1,68 @@
-import { db } from "@/lib/firebase";
-import { collection, addDoc, Timestamp, query, getDocs, deleteDoc, writeBatch } from "firebase/firestore";
+import { rtdb } from "@/lib/firebase";
+import { ref, set } from "firebase/database";
 
 /**
- * GENERATES REALISTIC CAMPUS ENERGY DATA
+ * GENERATES REALISTIC CAMPUS ENERGY DATA FOR REALTIME DATABASE
  * - High usage during class hours (08:00 - 16:00)
  * - Low usage at night/early morning
  */
 export async function clearSensorHistory() {
-  const colRef = collection(db, "sensor_history");
-  const q = query(colRef);
-  const existingDocs = await getDocs(q);
-  
-  if (existingDocs.size > 0) {
-    const batch = writeBatch(db);
-    existingDocs.docs.forEach((doc) => batch.delete(doc.ref));
-    await batch.commit();
-    return existingDocs.size;
+  try {
+    const historyRef = ref(rtdb, "sensor_history");
+    await set(historyRef, null);
+    console.log("🧹 Previous history cleared");
+    return true;
+  } catch (error) {
+    console.error("❌ Failed to clear history:", error);
+    throw error;
   }
-  return 0;
 }
 
 export async function seedSensorHistory() {
-  const colRef = collection(db, "sensor_history");
-  
-  // 1. Clear existing history before seeding
+  // 1. Bersihkan riwayat lama
   await clearSensorHistory();
-  console.log("🧹 Previous history cleared");
 
   const now = new Date();
-  const batch = writeBatch(db);
   let count = 0;
+  const updates: Record<string, any> = {};
 
-  // Generate data for the last 7 days (hourly)
+  // Hasilkan data untuk 7 hari terakhir (setiap jam)
   for (let day = 0; day < 7; day++) {
     for (let hour = 0; hour < 24; hour++) {
       const timestamp = new Date(now);
       timestamp.setDate(now.getDate() - day);
       timestamp.setHours(hour, 0, 0, 0);
 
-      // --- 🧠 CAMPUS HOUR LOGIC ---
+      // --- 🧠 LOGIKA JAM KAMPUS ---
       let watt = 0;
       if (hour >= 8 && hour <= 16) {
-        // Active hours (Building full)
+        // Jam Aktif Perkuliahan (Gedung Penuh)
         watt = 450 + Math.random() * 150;
       } else if (hour >= 17 && hour <= 21) {
-        // Late hours (Some classes/staff)
+        // Sore Hari (Kelas Malam / Staf)
         watt = 200 + Math.random() * 100;
       } else {
-        // Night/Early morning (Idle)
+        // Malam / Dini Hari (Idle)
         watt = 100 + Math.random() * 50;
       }
 
-      const docRef = addDoc(colRef, {
+      const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
+      const histKey = `hist_${timestampSeconds}`;
+
+      updates[histKey] = {
         watt: parseFloat(watt.toFixed(2)),
         volt: parseFloat((218 + Math.random() * 5).toFixed(1)),
         ampere: parseFloat((watt / 220).toFixed(2)),
-        timestamp: Timestamp.fromDate(timestamp)
-      });
+        timestamp: timestampSeconds
+      };
       
       count++;
     }
   }
 
-  console.log(`✅ Successfully seeded ${count} historical entries to Firebase`);
+  // Batch update di RTDB dengan cara menimpa path sensor_history
+  await set(ref(rtdb, "sensor_history"), updates);
+
+  console.log(`✅ Successfully seeded ${count} historical entries to Firebase RTDB`);
   return count;
 }
