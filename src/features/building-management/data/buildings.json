@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bld_sipil_001",
+    "code": "GS",
+    "name": "Gedung Sipil",
+    "floorsCount": 8,
+    "roomsCount": 1,
+    "activeDevicesCount": 3,
+    "createdAt": 1779005000,
+    "rooms": [
+      {
+        "id": "bld_sipil_001_f7_lpr1",
+        "code": "LPR 1",
+        "name": "Lab. Pemrograman 1",
+        "floor": 7,
+        "capacity": 40
+      }
+    ]
+  }
+]
