@@ -1,76 +1,78 @@
-# Smart Eco-Campus
-
-**Smart Eco-Campus Efficiency System** is a modern, IoT-integrated platform designed to optimize energy consumption and enhance sustainability across campus facilities. Built with cutting-edge technologies, it provides real-time monitoring and control of classroom environments.
-
----
-
-## Key Features
-
-- **Real-time Device Control**: Manage classroom lights, AC/Fans, and power sockets remotely.
-- **Energy Monitoring**: Track power usage (Watts) across different zones to identify efficiency opportunities.
-- **IoT Integration**: Seamless interaction with smart hardware for live status updates.
-- **Secure Access**: Role-based authentication system built with NextAuth.
-- **Modern Dashboard**: A high-performance, responsive UI optimized for both desktop and mobile monitoring.
-- **Sustainability Focus**: Visual indicators and data insights to promote an eco-friendly campus culture.
-
----
-
-## Tech Stack
-
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **Core**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **UI Components**: [Radix UI](https://www.radix-ui.com/), [Lucide Icons](https://lucide.dev/)
-- **Authentication**: [NextAuth.js](https://next-auth.js.org/)
-- **Build Tool**: [Turbopack](https://nextjs.org/docs/app/api-reference/turbopack)
-- **Package Manager**: [pnpm](https://pnpm.io/)
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+ 
-- pnpm installed (`npm install -g pnpm`)
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/ItsQii/smart-eco-campus.git
-   cd smart-eco-campus
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pnpm install
-   ```
-
-3. **Set up environment variables**:
-   Create a `.env.local` file in the root directory and add necessary variables (see `.env.example` if available).
-
-4. **Run the development server**:
-   ```bash
-   pnpm dev
-   ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
----
-
-## Project Structure
-
-- `src/app`: Next.js App Router pages and layouts.
-- `src/components`: Reusable UI components (Shadcn UI based).
-- `src/services`: API and Authentication logic.
-- `src/types`: TypeScript interfaces and types.
-- `public`: Static assets and icons.
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
-
+smart-eco-campus/
+├── public/                         # Aset statis (Logo, Icon, Gambar, Favicon)
+├── src/
+│   ├── app/                        # [ROUTING & ORCHESTRATION LAYER]
+│   │   ├── layout.tsx              # Root Layout (NextAuth, Query/Theme Providers)
+│   │   ├── page.tsx                # Landing Page Utama (Opsional)
+│   │   ├── (auth)/                 # Route Group: Otentikasi
+│   │   │   └── login/
+│   │   │       └── page.tsx        # Halaman Login Gateway
+│   │   ├── (dashboard)/            # Route Group: Panel Utama (UI Shell)
+│   │   │   ├── layout.tsx          # Wrapper Sidebar, Navbar, & Role Guard
+│   │   │   ├── super-admin/
+│   │   │   │   └── page.tsx        # Dashboard Manajemen User & Perangkat Baru
+│   │   │   ├── admin-gedung/
+│   │   │   │   └── page.tsx        # Dashboard Kontrol Relay & Live Stream YOLOv8
+│   │   │   └── executive/
+│   │   │       └── page.tsx        # Dashboard Analitik Finansial & Trendline
+│   │   └── api/                    # Next.js Route Handlers (BFF / API Bridges)
+│   │
+│   ├── features/                   # [BUSINESS LOGIC LAYER] (Inti Aplikasi per Modul PRD)
+│   │   ├── auth/                   # Modul 1: RBAC & Login
+│   │   │   ├── components/         # LoginForm, RoleGuard
+│   │   │   ├── hooks/              # useAuth, useSessionRole
+│   │   │   ├── services/           # auth-api.ts
+│   │   │   └── index.ts            # <--- PUBLIC API GATEWAY (Ekspor resmi untuk luar)
+│   │   │
+│   │   ├── iot-control/            # Modul 2 & 3: Telemetri PZEM & Sakelar Relay
+│   │   │   ├── components/         # DeviceCard, ManualSwitch, PZEMGauge
+│   │   │   ├── hooks/              # useLiveMetrics, useManualOverride
+│   │   │   ├── services/           # firebase-iot-service.ts
+│   │   │   ├── constants/          # (FEATURE CONSTANTS) Status Alat, Batas Delay
+│   │   │   │   └── iot-config.ts   
+│   │   │   ├── types/              # iot-types.ts
+│   │   │   └── index.ts            # <--- PUBLIC API GATEWAY
+│   │   │
+│   │   ├── ai-vision/              # Modul 2: YOLOv8 Stream & Occupancy Counting
+│   │   │   ├── components/         # CameraFeed, DetectionStatus
+│   │   │   ├── hooks/              # useYoloStream
+│   │   │   └── index.ts            # <--- PUBLIC API GATEWAY
+│   │   │
+│   │   ├── analytics/              # Modul 4: Agregasi Data Hadoop Big Data
+│   │   │   ├── components/         # FinancialBarChart, TrendlineChart
+│   │   │   ├── services/           # hadoop-analytics-api.ts
+│   │   │   ├── utils/              # format-currency.ts (Konversi kWh -> IDR)
+│   │   │   └── index.ts            # <--- PUBLIC API GATEWAY
+│   │   │
+│   │   └── audit-logs/             # Modul 4: Riwayat Sistem (AI vs Manual)
+│   │       ├── components/         # LogTable, ActivityFeed
+│   │       ├── services/           # audit-api.ts
+│   │       └── index.ts            # <--- PUBLIC API GATEWAY
+│   │
+│   ├── components/                 # [SHARED UI LAYER] (Generic Component / Reusable)
+│   │   ├── ui/                     # Shadcn Atoms (Button, Input, Card, Badge, Dialog)
+│   │   └── shared/                 # Molecules Shell (Sidebar, Navbar, MobileNav)
+│   │
+│   ├── constants/                  # [GLOBAL CONSTANTS]
+│   │   ├── roles.ts                # Variabel Baku: SUPER_ADMIN, ADMIN_GEDUNG, EXECUTIVE
+│   │   ├── routes.ts               # Pemetaan path URL untuk navigasi statis
+│   │   └── env.ts                  # Pembacaan dan validasi environment variables
+│   │
+│   ├── lib/                        # [INFRASTRUCTURE CONFIG & UTILS]
+│   │   ├── firebase.ts             # Inisialisasi Firebase Client / Admin SDK
+│   │   ├── hadoop-client.ts        # Konfigurasi Akses WebHDFS Hadoop API
+│   │   └── utils.ts                # Helper cn() bawaan Shadcn untuk Tailwind Merge
+│   │
+│   ├── store/                      # [GLOBAL STATE MANAGEMENT]
+│   │   └── use-global-store.ts     # Zustand untuk sinkronisasi state lintas-fitur
+│   │
+│   ├── hooks/                      # [GENERIC GLOBAL HOOKS]
+│   │   ├── use-toast.ts            # Hook pemicu notifikasi pop-up
+│   │   └── use-debounce.ts         # Hook penunda input (optimasi performa)
+│   │
+│   └── types/                      # [GLOBAL TYPES DEFINITIONS]
+│       └── next-auth.d.ts          # Ekstensi tipe data session untuk menyertakan Role
+│
+├── tailwind.config.ts              # Custom tema Cyber Eco-Dark
+├── next.config.ts                  # Konfigurasi Next.js (optimasi image domain, dll)
+└── package.json                    # Daftar Dependencies (Shadcn, Zustand, Firebase, dll)

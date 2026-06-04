@@ -1,0 +1,21 @@
+// Public API Gateway
+// Export components, hooks, services from here
+export { DeviceCard } from "./components/device-control/device-card"
+export { DeviceSkeleton } from "./components/device-control/device-skeleton"
+export { DeviceStats } from "./components/device-control/device-stats"
+export { DeviceQuickActions } from "./components/device-control/device-quick-actions"
+export { LiveCameraFeed } from "./components/admin-gedung/live-camera-feed"
+export { OccupancyCard } from "./components/admin-gedung/occupancy-card"
+export { SystemStatusCard } from "./components/admin-gedung/system-status-card"
+export { TelemetryGauges } from "./components/admin-gedung/telemetry-gauges"
+export { useDevices } from "./hooks/use-devices"
+export { useBuildingTelemetry } from "./hooks/use-building-telemetry"
+export type { Device } from "./types/device"
+export { AdminGedungView } from "./views/admin-gedung-view"
+export { DeviceControlView } from "./views/device-control-view"
+export { default as BuildingInventoryView } from "./views/building-inventory-view"
+export { GlobalDeviceManagementView } from "./views/global-device-management-view"
+export { BuildingManagementView } from "@/features/building-management/views/building-management-view"
+export { useBuildings } from "@/features/building-management/hooks/use-buildings"
+export type { Building } from "@/features/building-management/types/building"
+

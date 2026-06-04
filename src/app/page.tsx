@@ -1,21 +1,22 @@
-import { Navbar } from "@/components/navbar"
-import { HeroSection } from "@/components/hero-section"
-import { HowItWorksSection } from "@/components/how-it-works-section"
-import { TeamSection } from "@/components/team-section"
-import { Footer } from "@/components/footer"
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/features/auth/services/auth-options"
+import { LandingPageView } from "@/features/landing-page"
 
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
-      <div id="how-it-works">
-        <HowItWorksSection />
-      </div>
-      <div id="team">
-        <TeamSection />
-      </div>
-      <Footer />
-    </main>
-  )
+export default async function Home() {
+  const session = await getServerSession(authOptions)
+
+  if (!session) {
+    return <LandingPageView />
+  }
+
+  const userRole = (session.user as any)?.role
+
+  if (userRole === "SUPER_ADMIN") {
+    redirect("/super-admin")
+  } else if (userRole === "EXECUTIVE") {
+    redirect("/executive")
+  } else {
+    redirect("/admin-gedung")
+  }
 }

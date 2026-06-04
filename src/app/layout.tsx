@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 // 1. Tambahkan import ini (Pastikan path-nya sesuai dengan letak file Providers kamu)
-import { Providers } from "@/components/Providers";
+import { Providers } from "@/components/providers/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
