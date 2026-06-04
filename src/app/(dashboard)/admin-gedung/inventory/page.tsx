@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BuildingInventoryView } from "@/features/iot-control";
 import { Metadata } from "next";
 
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function BuildingInventoryPage() {
-  return <BuildingInventoryView />;
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-500">Loading inventory...</div>}>
+      <BuildingInventoryView />
+    </Suspense>
+  );
 }
