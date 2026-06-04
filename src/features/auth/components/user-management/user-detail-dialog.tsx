@@ -1,0 +1,182 @@
+"use client"
+
+import { Eye, Mail, KeyRound, Shield, Building, MapPin, Network, Clock, Fingerprint } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { UserRecord } from "../../types/user"
+
+interface UserDetailDialogProps {
+  viewedUser: UserRecord | null
+  setViewedUser: (user: UserRecord | null) => void
+}
+
+export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialogProps) {
+  return (
+    <Dialog open={viewedUser !== null} onOpenChange={(open) => !open && setViewedUser(null)}>
+      <DialogContent className="bg-zinc-900 border-zinc-800 text-foreground max-w-lg p-0 overflow-hidden">
+        <div className="p-6 pb-4 border-b border-zinc-850 bg-zinc-900">
+          <DialogHeader>
+            <DialogTitle className="text-lg flex items-center gap-2">
+              <Eye className="w-5 h-5 text-emerald-500" />
+              <span>Operator Profile Inspection</span>
+            </DialogTitle>
+            <DialogDescription>
+              Detailed view of active operator security and operational scope parameters.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {viewedUser && (
+          <div className="p-6 pt-4 pb-4 space-y-6 max-h-[55vh] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-zinc-855 scrollbar-track-transparent">
+            {/* Profile Header */}
+            <div className="flex items-center gap-4">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl shrink-0 select-none ${
+                viewedUser.role === "super_admin"
+                  ? "bg-red-500/10 border border-red-500/20 text-red-400 animate-[pulse_3s_infinite]"
+                  : viewedUser.role === "executive"
+                  ? "bg-blue-500/10 border border-blue-500/20 text-blue-400"
+                  : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              }`}>
+                {viewedUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-zinc-150 truncate">{viewedUser.name}</h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                    ACTIVE
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-500 font-mono flex items-center gap-1.5 mt-1 truncate">
+                  <Mail className="w-3.5 h-3.5 text-zinc-650" />
+                  {viewedUser.email}
+                </span>
+              </div>
+            </div>
+
+            {/* Data Section 1: Core Credentials info */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">System Identity & Scope</h4>
+              <div className="grid grid-cols-2 gap-3 bg-zinc-950 border border-zinc-850 p-4 rounded-lg">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">User Unique ID</span>
+                  <span className="text-xs text-zinc-300 font-mono truncate">{viewedUser.uid}</span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Authentication Type</span>
+                  <span className="text-xs text-zinc-300 font-mono flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                    <span>JWT Credentials</span>
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">RBAC Security Role</span>
+                  <div className="flex items-center gap-1.5">
+                    <Shield className={`w-3.5 h-3.5 ${
+                      viewedUser.role === "super_admin" ? "text-red-400" : viewedUser.role === "executive" ? "text-blue-400" : "text-emerald-400"
+                    }`} />
+                    <span className="text-xs text-zinc-300 font-semibold uppercase">{viewedUser.role.replace("_", " ")}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Assigned Location</span>
+                  <div className="flex items-center gap-1">
+                    <Building className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                    <span className="text-xs text-zinc-300 font-medium">
+                      {viewedUser.assigned_gedung ? viewedUser.assigned_gedung.replace("_", " ").toUpperCase() : "GLOBAL SYSTEM"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Section 2: Security & Permissions level */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Access Controls & Activity</h4>
+              <div className="grid grid-cols-2 gap-3 bg-zinc-950 border border-zinc-850 p-4 rounded-lg">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Security Clearance</span>
+                  <span className={`text-xs font-semibold ${
+                    viewedUser.role === "super_admin"
+                      ? "text-red-400"
+                      : viewedUser.role === "executive"
+                      ? "text-blue-400"
+                      : "text-emerald-400"
+                  }`}>
+                    {viewedUser.role === "super_admin"
+                      ? "Level 3 (Full Read/Write)"
+                      : viewedUser.role === "executive"
+                      ? "Level 1 (Read-Only Insights)"
+                      : "Level 2 (Building Maintainer)"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Operational Zone</span>
+                  <span className="text-xs text-zinc-300 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-zinc-650 shrink-0" />
+                    <span className="truncate">
+                      {viewedUser.role === "admin_gedung"
+                        ? viewedUser.assigned_gedung === "gedung_a"
+                          ? "Zone A (Engineering Wing)"
+                          : viewedUser.assigned_gedung === "gedung_b"
+                          ? "Zone B (Science Wing)"
+                          : "Zone C (Rektorat Wing)"
+                        : "Campus-Wide Perimeter"}
+                    </span>
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Intranet Login IP</span>
+                  <span className="text-xs text-zinc-300 font-mono flex items-center gap-1">
+                    <Network className="w-3.5 h-3.5 text-zinc-650 shrink-0" />
+                    <span>192.168.10.{viewedUser.uid.charCodeAt(viewedUser.uid.length - 1) || 45}</span>
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-zinc-500 font-medium">Created Time</span>
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-mono">
+                    <Clock className="w-3.5 h-3.5 text-zinc-650 shrink-0" />
+                    <span>{new Date(viewedUser.created_at * 1000).toLocaleString("id-ID")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Section 3: Privileges Description */}
+            <div className="p-3 bg-zinc-900/60 border border-zinc-850 rounded-lg text-[11px] text-zinc-400 flex items-start gap-2.5">
+              <Fingerprint className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 animate-pulse" />
+              <div>
+                <span className="font-semibold text-zinc-300 block mb-0.5">RBAC Scope Privileges</span>
+                {viewedUser.role === "super_admin"
+                  ? "Memiliki otoritas penuh atas administrasi fisik gedung, sensor IoT, registrasi kredensial operator, dan audit sistem global."
+                  : viewedUser.role === "executive"
+                  ? "Memiliki hak akses analitis komprehensif atas konsumsi daya energi dan air kampus secara real-time (hanya baca)."
+                  : "Terbatas untuk memantau status perangkat sensor, mengubah konfigurasi sensor, dan membaca log lokal pada gedung yang ditugaskan."}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="p-6 pt-4 border-t border-zinc-850 flex justify-end bg-zinc-900">
+          <Button
+            onClick={() => setViewedUser(null)}
+            className="bg-zinc-850 hover:bg-zinc-800 text-zinc-300 font-bold px-6 border border-zinc-750"
+          >
+            Close Profile
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
