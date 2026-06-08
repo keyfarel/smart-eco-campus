@@ -1,0 +1,25 @@
+name: Edge Node Sync (YOLOv8)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/yolo/**'
+
+jobs:
+  deploy-to-edge:
+    name: Sync AI Scripts to Edge Node
+    # As per docs: uses GitHub Self-Hosted Runner on the Edge PC
+    runs-on: [self-hosted, edge-node]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Restart Edge Daemon
+        # Adjust the service name if it differs on the local Edge PC
+        run: |
+          echo "Code has been pulled by the runner."
+          echo "Restarting YOLOv8 Edge Daemon..."
+          # sudo systemctl restart edge-daemon.service || echo "Please configure systemd for edge-daemon"
+          # Depending on how the script is run locally, execute the appropriate restart command.

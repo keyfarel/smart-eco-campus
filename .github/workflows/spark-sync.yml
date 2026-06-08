@@ -1,0 +1,24 @@
+name: Spark VM Sync (Hadoop/Analytics)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/spark/**'
+
+jobs:
+  deploy-to-spark-vm:
+    name: Sync Spark Scripts to Hadoop VM
+    # As per docs: uses GitHub Self-Hosted Runner on the local Hadoop VM
+    runs-on: [self-hosted, hadoop-vm]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Sync and Validate Spark Job
+        run: |
+          echo "Code has been pulled by the runner into the Hadoop VM."
+          echo "Validating Spark ETL Script..."
+          # Insert validation or restart commands if there are running cron jobs or daemon
+          # python3 -m py_compile scripts/spark/spark_etl_job.py

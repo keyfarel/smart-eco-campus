@@ -9,18 +9,27 @@ interface UsagePatternChartProps {
   data: any[]
   chartVariants: Variants
   isEmpty: boolean
+  isLiveMode?: boolean
 }
 
-export function UsagePatternChart({ data, chartVariants, isEmpty }: UsagePatternChartProps) {
+export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = false }: UsagePatternChartProps) {
   return (
     <motion.div className="lg:col-span-2" variants={chartVariants}>
       <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden backdrop-blur-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
             <Zap className="w-4 h-4 text-emerald-500" />
-            Energy Usage Pattern
+            {isLiveMode ? "Live Power Load Monitor" : "Energy Usage Pattern"}
+            {isLiveMode && (
+              <span className="relative flex h-2 w-2 ml-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            )}
           </CardTitle>
-          <CardDescription className="text-xs">Visualizing power load variations across the campus</CardDescription>
+          <CardDescription className="text-xs">
+            {isLiveMode ? "Real-time monitoring of campus power consumption" : "Visualizing power load variations across the campus"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="h-[350px] relative p-0 pt-4">
           <AnimatePresence mode="wait">

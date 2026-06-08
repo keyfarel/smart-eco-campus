@@ -1,5 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface LogPaginationProps {
   currentPage: number
@@ -16,39 +23,64 @@ export function LogPagination({
   currentCount,
   onPageChange,
 }: LogPaginationProps) {
+  
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages]
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    }
+
+    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages]
+  }
+
+  const pages = getPageNumbers()
+
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
       <p className="text-sm text-zinc-500 font-mono">
         Showing {currentCount} of {totalCount} logs
       </p>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
-          className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
-        >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Previous
-        </Button>
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-medium text-zinc-200 px-3 py-1 bg-zinc-800 rounded-md">
-            {currentPage}
-          </span>
-          <span className="text-sm text-zinc-500">of {totalPages || 1}</span>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-          className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
-        >
-          Next
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
-      </div>
+
+      <Pagination className="mx-0 w-auto">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+              className={`cursor-pointer ${currentPage === 1 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
+            />
+          </PaginationItem>
+          
+          {pages.map((page, index) => (
+            <PaginationItem key={index}>
+              {page === "..." ? (
+                <PaginationEllipsis className="text-zinc-500" />
+              ) : (
+                <PaginationLink
+                  isActive={page === currentPage}
+                  onClick={() => onPageChange(page as number)}
+                  className={`cursor-pointer w-9 h-9 ${page === currentPage ? "bg-zinc-800 text-zinc-200 border border-zinc-700" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300 border border-transparent"}`}
+                >
+                  {page}
+                </PaginationLink>
+              )}
+            </PaginationItem>
+          ))}
+
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+              className={`cursor-pointer ${currentPage === totalPages || totalPages === 0 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   )
 }

@@ -16,9 +16,9 @@ interface UsageDistributionChartProps {
 export function UsageDistributionChart({ chartVariants, isEmpty }: UsageDistributionChartProps) {
   // Load devices and compute real-time breakdown by category
   const [categoryData, setCategoryData] = useState([
-    { name: "Lighting", value: 35 },
-    { name: "HVAC", value: 45 },
-    { name: "Computing", value: 20 },
+    { name: "Penerangan (Lampu)", value: 35 },
+    { name: "Pendingin (AC)", value: 45 },
+    { name: "Stopkontak (Lainnya)", value: 20 },
   ])
 
   useEffect(() => {
@@ -53,16 +53,16 @@ export function UsageDistributionChart({ chartVariants, isEmpty }: UsageDistribu
       const totalPower = lampPower + acPower + plugPower
       if (totalPower > 0) {
         setCategoryData([
-          { name: "Lighting", value: Math.round((lampPower / totalPower) * 100) },
-          { name: "HVAC", value: Math.round((acPower / totalPower) * 100) },
-          { name: "Computing", value: Math.round((plugPower / totalPower) * 100) },
+          { name: "Penerangan (Lampu)", value: Math.round((lampPower / totalPower) * 100) },
+          { name: "Pendingin (AC)", value: Math.round((acPower / totalPower) * 100) },
+          { name: "Stopkontak (Lainnya)", value: Math.round((plugPower / totalPower) * 100) },
         ])
       } else {
         // Fallback default distribution if all active devices are OFF
         setCategoryData([
-          { name: "Lighting", value: 30 },
-          { name: "HVAC", value: 40 },
-          { name: "Computing", value: 30 },
+          { name: "Penerangan (Lampu)", value: 30 },
+          { name: "Pendingin (AC)", value: 40 },
+          { name: "Stopkontak (Lainnya)", value: 30 },
         ])
       }
     }

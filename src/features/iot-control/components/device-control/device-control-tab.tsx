@@ -13,13 +13,14 @@ import { DoorOpen, Lightbulb, Fan, Zap, Play, Square, Cpu, Activity, ArrowRight,
 import { Device } from "../../types/device"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useBuildingTelemetry } from "../../hooks/use-building-telemetry"
 
 interface DeviceControlTabProps {
   devices: Device[]
   connected: boolean
   toggling: string | null
-  toggleDevice: (deviceId: string, currentState: boolean, isPhysicalOverride?: boolean) => Promise<void>
-  setAllDevices: (roomName: string, state: boolean) => Promise<void>
+  toggleDevice: (deviceId: string, currentState: boolean, isPhysicalOverride?: boolean, overrideRoomName?: string) => Promise<void>
+  setAllDevices: (roomName: string, state: boolean, deviceIds?: string[]) => Promise<void>
   isReadOnly: boolean
   roomAutomation: Record<string, boolean>
   toggleRoomAutomation: (roomName: string) => Promise<void>
@@ -48,7 +49,9 @@ export function DeviceControlTab({
   const { buildingsList } = useBuildings()
   const searchParams = useSearchParams()
   const highlightedRoom = searchParams?.get("room")
-  
+
+  const { allRoomsData } = useBuildingTelemetry()
+
   // Layout mode state
   const [viewMode, setViewMode] = useState<"grid" | "table">("table")
 
@@ -76,6 +79,12 @@ export function DeviceControlTab({
   }
 
   const calculateRoomPower = (roomName: string) => {
+    const telemetry = allRoomsData[roomName]
+    if (telemetry !== undefined) {
+      return telemetry.watt
+    }
+
+    // Fallback if no telemetry (or offline)
     const roomDevices = devices.filter((d) => d.location === roomName)
     return roomDevices.reduce((sum, d) => sum + (d.isOn ? d.powerUsage : 0), 0)
   }
@@ -84,14 +93,14 @@ export function DeviceControlTab({
   const groupedRooms = useMemo(() => {
     // Collect all rooms from buildings that should be visible to this user
     const allAvailableRooms: { id: string; name: string; buildingId: string; floor: number; code?: string }[] = []
-    
+
     buildingsList.forEach(building => {
       // Security Filter: Building Admin only sees their assigned building
       if (isBuildingAdmin && building.id !== assignedGedung) return
-      
+
       // Super Admin filter
       if (isSuperAdmin && buildingFilter !== "all" && building.id !== buildingFilter) return
-      
+
       (building.rooms || []).forEach(room => {
         allAvailableRooms.push({
           id: room.id,
@@ -102,11 +111,11 @@ export function DeviceControlTab({
         })
       })
     })
-    
+
     // Apply UI Filters
     const filtered = allAvailableRooms.filter((room: any) => {
       // 🚨 LIVE IOT FILTER: Only show rooms that have registered devices in Firebase
-      const roomDevices = devices.filter((d) => d.location === room.name || (d.id && d.id.startsWith(room.code || '')))
+      const roomDevices = devices.filter((d) => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
       if (roomDevices.length === 0) return false
 
       const matchesSearch = room.name.toLowerCase().includes(roomSearch.toLowerCase())
@@ -154,8 +163,9 @@ export function DeviceControlTab({
   }
 
   const getDeviceIcon = (id: string) => {
-    if (id.includes("lamp")) return <Lightbulb className="w-4 h-4" />
-    if (id.includes("acFan")) return <Fan className="w-4 h-4" />
+    const typeId = id.toLowerCase()
+    if (typeId.includes("lamp") || typeId.includes("relay_1")) return <Lightbulb className="w-4 h-4" />
+    if (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) return <Fan className="w-4 h-4" />
     return <Zap className="w-4 h-4" />
   }
 
@@ -257,7 +267,7 @@ export function DeviceControlTab({
                       <tbody className="divide-y divide-zinc-850/60 text-xs">
                         {roomList.map((room: any) => {
                           const roomWatts = calculateRoomPower(room.name)
-                          const roomDevices = devices.filter(d => d.location === room.name || (d.id && d.id.startsWith(room.code || '')))
+                          const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
                           const isAnyOn = roomDevices.some(d => d.isOn)
                           return (
                             <tr key={room.id} className="hover:bg-zinc-950/20 transition-colors">
@@ -267,15 +277,25 @@ export function DeviceControlTab({
                               <td className="px-4 py-3"><div className="flex items-center justify-center gap-2"><Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-75 data-[state=checked]:bg-emerald-500" /></div></td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-2">
-                                  {roomDevices.map(d => (
-                                    <button key={d.id} onClick={() => toggleDevice(d.id, d.isOn)} className={`p-1.5 rounded-lg border transition-all ${d.isOn ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-zinc-955 border-zinc-850 text-zinc-650"}`}>{getDeviceIcon(d.id)}</button>
-                                  ))}
+                                  {(() => {
+                                    const uniqueDevices = new Map();
+                                    roomDevices.forEach(d => {
+                                      const typeId = d.id.toLowerCase();
+                                      const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
+                                        : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
+                                        : "pcProjector";
+                                      if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
+                                    });
+                                    return Array.from(uniqueDevices.values()).map(d => (
+                                      <button key={d.id} onClick={() => toggleDevice(d.id, d.isOn, false, room.name)} className={`p-1.5 rounded-lg border transition-all ${d.isOn ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-zinc-955 border-zinc-850 text-zinc-650"}`}>{getDeviceIcon(d.id)}</button>
+                                    ));
+                                  })()}
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-right">
                                 <div className="flex justify-end gap-1.5">
-                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, false)} className="h-7 w-7 p-0 text-red-500/70 hover:text-red-500 hover:bg-red-500/10"><Square className="w-3 h-3" /></Button>
-                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, true)} className="h-7 w-7 p-0 text-emerald-500/70 hover:text-emerald-500 hover:bg-emerald-500/10"><Play className="w-3 h-3" /></Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, false, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-red-500/70 hover:text-red-500 hover:bg-red-500/10"><Square className="w-3 h-3" /></Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, true, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-emerald-500/70 hover:text-emerald-500 hover:bg-emerald-500/10"><Play className="w-3 h-3" /></Button>
                                 </div>
                               </td>
                             </tr>
@@ -289,7 +309,7 @@ export function DeviceControlTab({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {roomList.map((room: any) => {
                     const roomWatts = calculateRoomPower(room.name)
-                    const roomDevices = devices.filter(d => d.location === room.name || (d.id && d.id.startsWith(room.code || '')))
+                    const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
                     const isAnyOn = roomDevices.some(d => d.isOn)
                     return (
                       <Card key={room.id} className={`bg-zinc-900 border-zinc-855 transition-all ${isAnyOn ? "border-emerald-500/20 shadow-sm" : ""}`}>
@@ -306,12 +326,22 @@ export function DeviceControlTab({
                             <Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-65" />
                           </div>
                           <div className="flex gap-1.5">
-                            {roomDevices.map(d => (
-                              <Button key={d.id} variant="outline" size="sm" onClick={() => toggleDevice(d.id, d.isOn)} className={`h-8 flex-1 gap-1 text-[10px] ${d.isOn ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400" : "bg-zinc-950 border-zinc-850 text-zinc-600"}`}>
-                                {getDeviceIcon(d.id)}
-                                {d.isOn ? "ON" : "OFF"}
-                              </Button>
-                            ))}
+                            {(() => {
+                              const uniqueDevices = new Map();
+                              roomDevices.forEach(d => {
+                                const typeId = d.id.toLowerCase();
+                                const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
+                                  : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
+                                  : "pcProjector";
+                                if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
+                              });
+                              return Array.from(uniqueDevices.values()).map(d => (
+                                <Button key={d.id} variant="outline" size="sm" onClick={() => toggleDevice(d.id, d.isOn, false, room.name)} className={`h-8 flex-1 gap-1 text-[10px] ${d.isOn ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400" : "bg-zinc-950 border-zinc-850 text-zinc-600"}`}>
+                                  {getDeviceIcon(d.id)}
+                                  {d.isOn ? "ON" : "OFF"}
+                                </Button>
+                              ));
+                            })()}
                           </div>
                         </CardContent>
                       </Card>

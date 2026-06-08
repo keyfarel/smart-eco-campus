@@ -2,6 +2,7 @@ import cv2
 import time
 import requests
 import datetime
+import threading
 from flask import Flask, Response
 from ultralytics import YOLO
 
@@ -23,6 +24,7 @@ args = parser.parse_args()
 FIREBASE_URL = "https://iot-kelompok-6-59aac-default-rtdb.asia-southeast1.firebasedatabase.app/"
 NODE_ID = args.node_id
 ROOM_ID = args.room_id
+ROOM_CODE = "LPR 1" # Sesuai dengan kode ruangan di Next.js Dashboard
 
 print(f"🚀 Inisialisasi Kamera AI untuk Ruangan: {ROOM_ID} (Node Hardware: {NODE_ID})")
 
@@ -91,9 +93,9 @@ def generate_frames():
                     try:
                         iso_now = datetime.datetime.utcnow().isoformat() + "Z"
                         
-                        # Update Frontend UI (Devices Node)
-                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_ID}-lamp.json", json={"isOn": True, "lastUpdated": iso_now}, timeout=2)
-                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_ID}-acFan.json", json={"isOn": True, "lastUpdated": iso_now}, timeout=2)
+                        # Update Frontend UI (Devices Node) - Menggunakan ROOM_CODE
+                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-lamp.json", json={"isOn": True, "lastUpdated": iso_now}, timeout=2)
+                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-acFan.json", json={"isOn": True, "lastUpdated": iso_now}, timeout=2)
                         
                         # Update Hardware Node (Compatibility)
                         requests.patch(f"{FIREBASE_URL}nodes/{NODE_ID}/relays/relay_1_lampu.json", json={"is_on": True}, timeout=2)
@@ -131,9 +133,9 @@ def generate_frames():
                     try:
                         iso_now = datetime.datetime.utcnow().isoformat() + "Z"
                         
-                        # Update Frontend UI (Devices Node)
-                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_ID}-lamp.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
-                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_ID}-acFan.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
+                        # Update Frontend UI (Devices Node) - Menggunakan ROOM_CODE
+                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-lamp.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
+                        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-acFan.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
                         
                         # Update Hardware Node (Compatibility)
                         requests.patch(f"{FIREBASE_URL}nodes/{NODE_ID}/relays/relay_1_lampu.json", json={"is_on": False}, timeout=2)
@@ -206,6 +208,62 @@ def index():
     </html>
     """
 
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    print("Menerima perintah shutdown dari Dashboard...")
+    try:
+        iso_now = datetime.datetime.utcnow().isoformat() + "Z"
+        
+        # Kembalikan ruangan ke Mode Manual karena AI mati
+        requests.put(f"{FIREBASE_URL}room_automation/{ROOM_ID}.json", json=False, timeout=2)
+        
+        # Matikan UI Devices
+        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-lamp.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
+        requests.patch(f"{FIREBASE_URL}devices/{ROOM_CODE}-acFan.json", json={"isOn": False, "lastUpdated": iso_now}, timeout=2)
+        
+        # Matikan Hardware Relays
+        requests.patch(f"{FIREBASE_URL}nodes/{NODE_ID}/relays/relay_1_lampu.json", json={"is_on": False}, timeout=2)
+        requests.patch(f"{FIREBASE_URL}nodes/{NODE_ID}/relays/relay_2_kipas.json", json={"is_on": False}, timeout=2)
+        
+        # Kirim Log Keuangan
+        requests.post(f"{FIREBASE_URL}logs/{NODE_ID}.json", json={
+            "relay_id": "bulk",
+            "action": "OFF",
+            "timestamp": int(time.time()),
+            "triggered_by": "System Override",
+            "reason": "AI Camera Manual Shutdown"
+        }, timeout=2)
+        
+        print("✅ Sistem kelistrikan dimatikan secara paksa sebelum AI mati.")
+        cap.release()
+    except Exception as e:
+        print(f"⚠️ Peringatan saat shutdown: {e}")
+        
+    os._exit(0)
+    return "Shutting down..."
+
+def heartbeat():
+    while True:
+        try:
+            requests.patch(
+                f"{FIREBASE_URL}nodes/{NODE_ID}/telemetry.json",
+                json={"last_seen_timestamp": int(time.time())},
+                timeout=2
+            )
+        except Exception as e:
+            pass
+        time.sleep(10)
+
 if __name__ == '__main__':
+    # Start heartbeat thread so the dashboard sees this room as "Online"
+    # PAKSA RUANGAN MASUK MODE OTOMATIS (AUTO) SAAT AI MENYALA (Keperluan Demo/Simulasi)
+    try:
+        requests.put(f"{FIREBASE_URL}room_automation/{ROOM_ID}.json", json=True, timeout=2)
+        print("✅ Mode Ruangan di-Override menjadi AUTO (AI in Control).")
+    except Exception as e:
+        pass
+
+    threading.Thread(target=heartbeat, daemon=True).start()
+    
     print(f"🌍 Server AI berjalan! Buka browser dan pergi ke -> http://127.0.0.1:{args.port}")
     app.run(host='0.0.0.0', port=args.port, debug=False)

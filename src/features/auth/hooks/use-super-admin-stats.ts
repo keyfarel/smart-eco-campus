@@ -15,6 +15,12 @@ export function useSuperAdminStats() {
     energySaved: 0,
   })
 
+  // State untuk menyimpan master data agar tidak dipanggil berkali-kali
+  const [masterData, setMasterData] = useState<{ users: any[], buildings: any[] }>({
+    users: [],
+    buildings: []
+  })
+
   const [realtimeData, setRealtimeData] = useState<{
     nodes: Record<string, any>
     devices: Record<string, Device>
@@ -52,20 +58,34 @@ export function useSuperAdminStats() {
     }
   }, [])
 
-  // 2. Fetch Aggregated Data
-  const loadAggregatedStats = async () => {
-    try {
-      // Fetch users
-      const userRes = await fetch("/api/users")
-      const usersData = userRes.ok ? await userRes.json() : []
+  // 2. Fetch Aggregated Data (Master Data) HANYA SEKALI SAAT LOAD
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [userRes, buildingRes] = await Promise.all([
+          fetch("/api/users"),
+          fetch("/api/buildings")
+        ])
+        
+        const users = userRes.ok ? await userRes.json() : []
+        const buildings = buildingRes.ok ? await buildingRes.json() : []
+        
+        setMasterData({ users, buildings })
+      } catch (error) {
+        console.error("[useSuperAdminStats] Failed to fetch master data:", error)
+      }
+    }
+    fetchMasterData()
+  }, [])
 
-      // Fetch buildings/rooms
-      const buildingRes = await fetch("/api/buildings")
-      const buildingsData = buildingRes.ok ? await buildingRes.json() : []
+  // 3. Kalkulasi ulang setiap kali ada perubahan data Realtime dari Firebase
+  useEffect(() => {
+    try {
+      const { users, buildings } = masterData
       
       let totalMasterRooms = 0
       const masterRoomIds: string[] = []
-      buildingsData.forEach((b: any) => {
+      buildings.forEach((b: any) => {
         (b.rooms || []).forEach((r: any) => {
           totalMasterRooms++
           masterRoomIds.push(r.id)
@@ -76,7 +96,7 @@ export function useSuperAdminStats() {
       const devicesList = Object.values(realtimeData.devices)
       const nodesList = Object.values(realtimeData.nodes)
 
-      // Active Nodes = Registered ESP32 modules currently in RTDB (or fallback to local mock counting if needed)
+      // Active Nodes = Registered ESP32 modules currently in RTDB
       let activeNodesCount = nodesList.filter((n: any) => n.metadata?.is_registered !== false).length
 
       // Total Devices = Total expected relays across all master rooms
@@ -104,18 +124,14 @@ export function useSuperAdminStats() {
         activeNodes: activeNodesCount,
         totalDevices: totalDevicesCount,
         powerLoad: currentPowerLoad,
-        userCount: usersData.length,
+        userCount: users.length,
         energySaved,
         financialSaved,
       })
     } catch (err) {
       console.error("[useSuperAdminStats] Aggregate calculation failed:", err)
     }
-  }
-
-  useEffect(() => {
-    loadAggregatedStats()
-  }, [realtimeData])
+  }, [realtimeData, masterData])
 
   return { stats }
 }

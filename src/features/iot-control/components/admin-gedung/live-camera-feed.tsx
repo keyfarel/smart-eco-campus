@@ -1,7 +1,9 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Camera, Wifi, Activity } from "lucide-react"
+import { Camera, Wifi, Activity, Power, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import { useState, useEffect } from "react"
 
 interface LiveCameraFeedProps {
@@ -17,10 +19,10 @@ interface LiveCameraFeedProps {
   roomMode?: string
 }
 
-export function LiveCameraFeed({ 
-  status, 
-  roomName, 
-  className, 
+export function LiveCameraFeed({
+  status,
+  roomName,
+  className,
   isPatrolling,
   patrolCountdown,
   floorName,
@@ -32,6 +34,47 @@ export function LiveCameraFeed({
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isStreamAlive, setIsStreamAlive] = useState(true);
   const [fps, setFps] = useState(30);
+  const [isTogglingCam, setIsTogglingCam] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [streamTimestamp, setStreamTimestamp] = useState(Date.now());
+
+  // Reset video loading state if status goes offline
+  useEffect(() => {
+    if (status !== "Online") {
+      setIsVideoLoading(true);
+    }
+  }, [status]);
+
+  // Periksa apakah server kamera sudah jalan atau belum (opsional, tp kita asumsikan isStreamAlive cukup)
+  const toggleCameraScript = async () => {
+    setIsTogglingCam(true)
+    const action = isStreamAlive && status === "Online" ? "stop" : "start"
+    toast.info(action === "start" ? "Menyalakan Mesin AI YOLO..." : "Mematikan Kamera AI...")
+
+    try {
+      const res = await fetch("/api/cam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action })
+      })
+      if (res.ok) {
+        toast.success(action === "start" ? "AI Camera berhasil dijalankan!" : "AI Camera dimatikan.")
+        if (action === "start") {
+          setStreamTimestamp(Date.now())
+          setIsStreamAlive(true)
+          setIsVideoLoading(true)
+        } else {
+          setIsStreamAlive(false)
+        }
+      } else {
+        toast.error("Gagal mengontrol skrip kamera.")
+      }
+    } catch (e) {
+      toast.error("Terjadi kesalahan jaringan.")
+    } finally {
+      setIsTogglingCam(false)
+    }
+  }
 
   useEffect(() => {
     if (!isStreamAlive || status !== "Online") return;
@@ -72,11 +115,24 @@ export function LiveCameraFeed({
               <p className="text-xs text-muted-foreground mt-0.5">ESP32-CAM Stream - {roomName || "Building A"}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className={classNameForStatus(isFullyOnline ? "Online" : "Offline")} />
-            <span className={classTextForStatus(isFullyOnline ? "Online" : "Offline")}>
-              {isFullyOnline ? "LIVE" : "OFFLINE"}
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className={classNameForStatus(isFullyOnline ? "Online" : "Offline")} />
+              <span className={classTextForStatus(isFullyOnline ? "Online" : "Offline")}>
+                {isFullyOnline ? "LIVE" : "OFFLINE"}
+              </span>
+            </div>
+
+            <Button
+              size="sm"
+              variant={isFullyOnline ? "destructive" : "default"}
+              onClick={toggleCameraScript}
+              disabled={isTogglingCam}
+              className={`h-8 gap-2 ${!isFullyOnline ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}`}
+            >
+              {isTogglingCam ? <Loader2 className="w-4 h-4 animate-spin" /> : <Power className="w-4 h-4" />}
+              {isFullyOnline ? "Turn Off AI" : "Start AI Cam"}
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -135,7 +191,7 @@ export function LiveCameraFeed({
           </div>
 
           {/* Grid overlay effect */}
-          <div 
+          <div
             className="absolute inset-0 opacity-5"
             style={{
               backgroundImage: `
@@ -145,10 +201,10 @@ export function LiveCameraFeed({
               backgroundSize: '40px 40px',
             }}
           />
-          
+
           {/* Scan line effect */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-            <div 
+            <div
               className="absolute left-0 right-0 h-px bg-emerald-500/30 animate-pulse"
               style={{
                 animation: 'scanline 3s linear infinite',
@@ -156,19 +212,30 @@ export function LiveCameraFeed({
               }}
             />
           </div>
-          
+
           {/* Stream Video YOLOv8 */}
           {status === "Online" ? (
-            <img 
-              src="http://127.0.0.1:5000/video_feed" 
-              alt="Live YOLOv8 Feed" 
-              className="absolute inset-0 w-full h-full object-cover z-0 opacity-80"
-              onError={(e) => {
-                // Fallback ke placeholder jika stream YOLO mati/tidak terjangkau
-                setIsStreamAlive(false);
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+            <>
+              {isVideoLoading && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-sm text-emerald-500">
+                  <Loader2 className="w-10 h-10 animate-spin mb-4" />
+                  <p className="font-mono text-sm font-bold tracking-widest animate-pulse">MEMUAT MODEL AI YOLOv8...</p>
+                  <p className="text-[10px] text-emerald-500/60 mt-2 uppercase">Menyiapkan Memori & Webcam</p>
+                </div>
+              )}
+              <img
+                src={`${process.env.NEXT_PUBLIC_AI_CAMERA_URL || "http://127.0.0.1:5000"}/video_feed?t=${streamTimestamp}`}
+                alt="Live YOLOv8 Feed"
+                className={`absolute inset-0 w-full h-full object-cover z-0 opacity-80 ${isVideoLoading ? 'invisible' : 'visible'}`}
+                onLoad={() => setIsVideoLoading(false)}
+                onError={(e) => {
+                  // Fallback ke placeholder jika stream YOLO mati/tidak terjangkau
+                  setIsStreamAlive(false);
+                  setIsVideoLoading(false);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </>
           ) : null}
 
           {/* Aesthetic UI Overlay for Countdown */}

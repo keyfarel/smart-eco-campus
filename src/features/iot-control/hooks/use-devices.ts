@@ -323,13 +323,23 @@ export function useDevices() {
         }
         
         if (matchedNode && matchedNode.relays) {
-          let relayKey = ""
-          if (baseType === "lamp") relayKey = "relay_1_lampu"
-          else if (baseType === "acFan") relayKey = "relay_2_kipas"
-          else if (baseType === "pcProjector") relayKey = "relay_3_stopkontak"
+          const typeId = d.id.toLowerCase()
+          let hwIsOn: boolean | null = null;
           
-          if (relayKey && matchedNode.relays[relayKey]) {
-            const hwIsOn = matchedNode.relays[relayKey].is_on
+          if (typeId.includes("lamp") || typeId.includes("relay_1")) {
+            if (matchedNode.relays["relay_1_lampu"] !== undefined) hwIsOn = matchedNode.relays["relay_1_lampu"].is_on;
+            else if (matchedNode.relays["relay_1"] !== undefined) hwIsOn = matchedNode.relays["relay_1"].is_on;
+          } else if (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) {
+            if (matchedNode.relays["relay_2_kipas"] !== undefined) hwIsOn = matchedNode.relays["relay_2_kipas"].is_on;
+            else if (matchedNode.relays["relay_2_ac"] !== undefined) hwIsOn = matchedNode.relays["relay_2_ac"].is_on;
+            else if (matchedNode.relays["relay_2"] !== undefined) hwIsOn = matchedNode.relays["relay_2"].is_on;
+          } else {
+            // Default fallback is pcProjector/socket
+            if (matchedNode.relays["relay_3_stopkontak"] !== undefined) hwIsOn = matchedNode.relays["relay_3_stopkontak"].is_on;
+            else if (matchedNode.relays["relay_3"] !== undefined) hwIsOn = matchedNode.relays["relay_3"].is_on;
+          }
+          
+          if (hwIsOn !== null) {
             if (d.isOn !== hwIsOn) {
               changed = true
               return { ...d, isOn: hwIsOn, lastUpdated: new Date().toISOString() }
@@ -350,7 +360,7 @@ export function useDevices() {
   }, [hardwareNodes]) // Dependensi hanya pada hardwareNodes agar tidak infinite loop
 
   // 3. Toggle status perangkat
-  const toggleDevice = async (deviceId: string, currentState: boolean, isPhysicalOverride: boolean = false) => {
+  const toggleDevice = async (deviceId: string, currentState: boolean, isPhysicalOverride: boolean = false, overrideRoomName?: string) => {
     if (toggling) return
 
     const baseType = deviceId.split("-").pop() || deviceId
@@ -391,7 +401,7 @@ export function useDevices() {
 
         // 🚨 HARDWARE SYNC LOGIC: Push perintah langsung ke ESP32 Node
         try {
-          const roomName = deviceObj ? deviceObj.location : ""
+          const roomName = overrideRoomName || (deviceObj ? deviceObj.location : "")
           if (roomName) {
             const nodesSnapshot = await get(ref(rtdb, "nodes"))
             if (nodesSnapshot.exists()) {
@@ -400,13 +410,32 @@ export function useDevices() {
                 const nodeMeta = nodesData[mac].metadata || nodesData[mac]
                 if (nodeMeta && nodeMeta.display_name === roomName) {
                   let relayKey = ""
-                  if (baseType === "lamp") relayKey = "relay_1_lampu"
-                  else if (baseType === "acFan") relayKey = "relay_2_kipas"
-                  else if (baseType === "pcProjector") relayKey = "relay_3_stopkontak"
+                  const typeId = deviceId.toLowerCase()
+                  const isLamp = typeId.includes("lamp") || typeId.includes("relay_1")
+                  const isAc = typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")
+                  const isPlug = typeId.includes("pcprojector") || typeId.includes("stopkontak") || typeId.includes("plug") || typeId.includes("relay_3")
+                  
+                  if (isLamp) relayKey = "relay_1_lampu"
+                  else if (isAc) relayKey = "relay_2_kipas"
+                  else if (isPlug) relayKey = "relay_3_stopkontak"
                   
                   if (relayKey) {
                     await set(ref(rtdb, `nodes/${mac}/relays/${relayKey}/is_on`), !currentState)
                     await set(ref(rtdb, `nodes/${mac}/relays/${relayKey}/mode`), "manual")
+                    
+                    // Fallbacks for alternative naming
+                    if (isLamp) {
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_1/is_on`), !currentState)
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_1/mode`), "manual")
+                    } else if (isAc) {
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_2_ac/is_on`), !currentState)
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_2_ac/mode`), "manual")
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_2/is_on`), !currentState)
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_2/mode`), "manual")
+                    } else if (isPlug) {
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_3/is_on`), !currentState)
+                      await set(ref(rtdb, `nodes/${mac}/relays/relay_3/mode`), "manual")
+                    }
                   }
                 }
               })
@@ -487,14 +516,14 @@ export function useDevices() {
   }
 
   // 3. Matikan/Nyalakan semua perangkat sekaligus KHUSUS di kelas tertentu
-  const setAllDevices = async (roomName: string, state: boolean) => {
+  const setAllDevices = async (roomName: string, state: boolean, deviceIds: string[] = []) => {
     if (toggling) return
 
     const previousDevices = [...devices]
 
     setDevices((prev) => {
       const next = prev.map((d) =>
-        d.location === roomName
+        (d.location === roomName || deviceIds.includes(d.id))
           ? { ...d, isOn: state, lastUpdated: new Date().toISOString() }
           : d
       )
@@ -507,7 +536,7 @@ export function useDevices() {
     setToggling(`all-${roomName}`)
     try {
       if (isFirebaseReady && rtdb) {
-        const targetDevices = devices.filter((d) => d.location === roomName)
+        const targetDevices = devices.filter((d) => d.location === roomName || deviceIds.includes(d.id))
         const roomId = targetDevices[0]?.id?.split("-")[0] || "unknown"
         
         await Promise.all([
@@ -531,12 +560,20 @@ export function useDevices() {
               if (nodeMeta && nodeMeta.display_name === roomName) {
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_1_lampu/is_on`), state)
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_1_lampu/mode`), "manual")
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_1/is_on`), state)
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_1/mode`), "manual")
                 
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_2_kipas/is_on`), state)
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_2_kipas/mode`), "manual")
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_2_ac/is_on`), state)
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_2_ac/mode`), "manual")
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_2/is_on`), state)
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_2/mode`), "manual")
                 
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_3_stopkontak/is_on`), state)
                 await set(ref(rtdb, `nodes/${mac}/relays/relay_3_stopkontak/mode`), "manual")
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_3/is_on`), state)
+                await set(ref(rtdb, `nodes/${mac}/relays/relay_3/mode`), "manual")
               }
             })
           }

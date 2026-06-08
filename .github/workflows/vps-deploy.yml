@@ -1,0 +1,30 @@
+name: VPS Deployment (Next.js)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'next.config.mjs'
+
+jobs:
+  deploy-to-vps:
+    name: Sync and Build on VPS
+    runs-on: [self-hosted, vps]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Next.js Application
+        run: npm run build
+
+      - name: Restart PM2 Service
+        run: |
+          pm2 restart smart-eco-campus || pm2 start npm --name "smart-eco-campus" -- start
+          pm2 save

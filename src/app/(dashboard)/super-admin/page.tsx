@@ -8,7 +8,7 @@ interface PageProps {
 export default async function SuperAdminPage({ searchParams }: PageProps) {
   // Tunggu penyelesaian resolusi searchParams (Standar Next.js 15+)
   const resolvedParams = await searchParams
-  const timeRange = resolvedParams.timeRange || "24h"
+  const timeRange = resolvedParams.timeRange || "live"
 
   // Lakukan data fetching
   const { rawLogs, mainData, stats } = await getAnalyticsData(timeRange)

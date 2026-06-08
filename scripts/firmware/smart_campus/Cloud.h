@@ -184,7 +184,19 @@ inline void staggeredBootRecovery() {
 inline void FirebaseTask(void * pvParameters) {
   unsigned long lastFirebaseRoutine = 0;
   for(;;) {
-    if (isOnline) {
+    // 1. Tangani Koneksi WiFi di Background (Core 0) agar tidak nge-block Core 1
+    if (wifiMulti.run() == WL_CONNECTED) {
+      if (!isOnline) {
+        isOnline = true;
+        wasOffline = true;
+        Serial.println("[WIFI] Terkoneksi ulang otomatis (Background)!");
+        pushWiFiSlotsToFirebase();
+        for (int i = 0; i < 3; i++) pushRelayStateToFirebase(i);
+        pushTelemetryToFirebase();
+        wasOffline = false;
+      }
+
+      // 2. Rutinitas Firebase Normal
       for (int i = 0; i < 3; i++) {
         if (pendingSync[i]) { 
           pushRelayStateToFirebase(i); 
@@ -206,6 +218,12 @@ inline void FirebaseTask(void * pvParameters) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
         pullRelayCommandsFromFirebase();
         vTaskDelay(10 / portTICK_PERIOD_MS);
+      }
+    } else {
+      if (isOnline) {
+        isOnline = false;
+        wasOffline = true;
+        Serial.println("[WIFI] Terputus. Mencari jaringan di background...");
       }
     }
     vTaskDelay(50 / portTICK_PERIOD_MS); 

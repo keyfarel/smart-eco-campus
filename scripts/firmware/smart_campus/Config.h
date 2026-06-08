@@ -2,19 +2,20 @@
 #define CONFIG_H
 
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WiFiMulti.h>
-#include <WebServer.h>
 #include <DNSServer.h>
-#include <Preferences.h>
-#include <PZEM004Tv30.h>
-#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include <PZEM004Tv30.h>
+#include <Preferences.h>
+#include <WebServer.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <WiFiMulti.h>
+
 
 // ==========================================
 // CONFIGURATION & PINS
 // ==========================================
-extern const char* FIREBASE_HOST;
+extern const char *FIREBASE_HOST;
 extern String NODE_ID;
 
 #define PZEM_RX_PIN 16

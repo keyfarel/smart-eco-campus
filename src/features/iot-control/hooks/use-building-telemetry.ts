@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { rtdb } from "@/lib/firebase"
 import { ref, onValue } from "firebase/database"
@@ -23,6 +23,9 @@ export function useBuildingTelemetry() {
   const [roomsData, setRoomsData] = useState<Record<string, RoomTelemetry>>({})
   const [loading, setLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  
+  // Ref to track actual timestamp changes to bypass NTP failure on ESP32
+  const timestampTrackerRef = useRef<Record<string, { lastVal: number, lastChangeLocalTime: number }>>({})
 
   const [systemStatus] = useState({
     iotSensors: "Online",
@@ -71,16 +74,40 @@ export function useBuildingTelemetry() {
             roomName = "Unknown Room";
           }
           
+          const currentTimestamp = node.telemetry?.last_seen_timestamp || 0
+          
+          // Smart NTP-bypass Status Check
+          // If the timestamp changes, we know the node is alive even if NTP failed
+          let isOnline = false
+          const tracker = timestampTrackerRef.current[roomName]
+          const now = Date.now()
+          
+          if (tracker) {
+            if (currentTimestamp !== tracker.lastVal) {
+              // Value changed! Node is alive
+              timestampTrackerRef.current[roomName] = { lastVal: currentTimestamp, lastChangeLocalTime: now }
+              isOnline = true
+            } else {
+              // Value didn't change. Was it recently changed? (Grace period 65s)
+              isOnline = (now - tracker.lastChangeLocalTime) < 65000
+            }
+          } else {
+            // First time seeing this room
+            timestampTrackerRef.current[roomName] = { lastVal: currentTimestamp, lastChangeLocalTime: now }
+            // Fallback to absolute check just in case it actually has correct NTP
+            isOnline = (now / 1000 - currentTimestamp) < 65
+          }
+
           // Map Firebase schema to internal RoomTelemetry interface
           updatedRooms[roomName] = {
             watt: node.telemetry?.power || 0,
             volt: node.telemetry?.voltage || 0,
             ampere: node.telemetry?.current || 0,
             occupancy: node.ai_vision?.person_count || 0,
-            status: (Date.now() / 1000 - (node.telemetry?.last_seen_timestamp || 0)) < 60 ? "Online" : "Offline",
-            lampsOn: node.relays?.relay_1_lampu?.is_on || false,
-            acOn: node.relays?.relay_2_kipas?.is_on || false,
-            plugOn: node.relays?.relay_3_stopkontak?.is_on || false,
+            status: isOnline ? "Online" : "Offline",
+            lampsOn: node.relays?.relay_1_lampu?.is_on || node.relays?.relay_1?.is_on || false,
+            acOn: node.relays?.relay_2_kipas?.is_on || node.relays?.relay_2_ac?.is_on || node.relays?.relay_2?.is_on || false,
+            plugOn: node.relays?.relay_3_stopkontak?.is_on || node.relays?.relay_3?.is_on || false,
           }
         })
         

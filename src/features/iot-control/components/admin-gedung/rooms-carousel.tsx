@@ -145,7 +145,7 @@ export function RoomsCarousel({
                           : "bg-background/80 border-zinc-850 text-zinc-700"
                       }`}
                     >
-                      <Fan className="w-3.5 h-3.5 animate-spin-slow" />
+                      <Fan className={`w-3.5 h-3.5 ${acOn ? "animate-spin-slow" : ""}`} />
                     </div>
 
                     {/* Socket Indicator */}

@@ -19,9 +19,10 @@ interface AnalyticsStats {
 interface StatsCardsProps {
   stats: AnalyticsStats
   cardVariants: Variants
+  isLiveMode?: boolean
 }
 
-export function StatsCards({ stats, cardVariants }: StatsCardsProps) {
+export function StatsCards({ stats, cardVariants, isLiveMode = false }: StatsCardsProps) {
   const items = [
     { label: "Total Consumption", value: stats.total.toLocaleString("id-ID"), unit: "kWh", icon: Zap, help: "Total pemakaian energi terakumulasi dalam periode terpilih." },
     { 
@@ -79,7 +80,7 @@ export function StatsCards({ stats, cardVariants }: StatsCardsProps) {
                 {item.unit && <p className="text-[10px] text-muted-foreground font-mono font-bold uppercase">{item.unit}</p>}
               </div>
               <p className="mt-4 text-[9px] text-zinc-500 font-mono tracking-wider uppercase opacity-80">
-                {idx === 2 ? "Predicted pattern" : "Live calculation"}
+                {isLiveMode ? "Live calculation" : (idx === 2 ? "Predicted pattern" : "Historical data")}
               </p>
             </CardContent>
             {idx === 0 && <motion.div layoutId="green-bar" className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />}

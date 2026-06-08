@@ -90,7 +90,11 @@ void setup() {
     isSetupMode = false;
     Serial.print("[WIFI] Mencari jaringan.");
     unsigned long wifiStart = millis();
-    while (wifiMulti.run() != WL_CONNECTED && millis() - wifiStart < 30000) { delay(500); Serial.print("."); }
+    while (wifiMulti.run() != WL_CONNECTED && millis() - wifiStart < 30000) { 
+      handlePhysicalButtons(); // TETAP BACA SAKELAR SAAT MENCARI WIFI
+      delay(100); 
+      Serial.print("."); 
+    }
     Serial.println();
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -101,7 +105,7 @@ void setup() {
       pushAutoDiscovery();
       staggeredBootRecovery();
     } else {
-      preferences.begin("wifi_creds", false); preferences.clear(); preferences.end(); ESP.restart();
+      Serial.println("[WIFI] Gagal terhubung. Melanjutkan ke Offline Mode.");
     }
     
     // Start Background Task for Internet
@@ -115,30 +119,15 @@ void setup() {
 // LOOP (CORE 1)
 // ==========================================
 void loop() {
-  if (isSetupMode) {
-    dnsServer.processNextRequest();
-    server.handleClient();
-    return;
-  }
-
-  server.handleClient();
+  // Sakelar fisik dan sensor HARUS selalu berjalan terlepas dari status jaringan
   handlePhysicalButtons();
   handleSensors();
 
-  // Auto Reconnect Logic
-  if (wifiMulti.run() == WL_CONNECTED) {
-    if (!isOnline) {
-      isOnline = true; wasOffline = true;
-      Serial.println("[WIFI] Terkoneksi ulang otomatis!");
-      pushWiFiSlotsToFirebase();
-      for (int i = 0; i < 3; i++) pushRelayStateToFirebase(i);
-      pushTelemetryToFirebase();
-      wasOffline = false;
-    }
-  } else {
-    if (isOnline) {
-      isOnline = false; wasOffline = true;
-      Serial.println("[WIFI] Terputus. WiFiMulti mencari jaringan...");
-    }
+  if (isSetupMode) {
+    dnsServer.processNextRequest();
+    server.handleClient();
+    return; // Berhenti di sini khusus untuk mode Setup
   }
+
+  server.handleClient();
 }
