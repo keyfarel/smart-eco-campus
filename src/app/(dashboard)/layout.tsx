@@ -40,8 +40,8 @@ export default function DashboardLayout({
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-zinc-800/50 bg-background/95 backdrop-blur px-6">
-          <SidebarTrigger className="text-muted-foreground hover:text-foreground hover:bg-zinc-800/50" />
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-zinc-800/50 bg-background/95 backdrop-blur px-4 md:px-6">
+          <SidebarTrigger className="-ml-1 md:ml-0 text-muted-foreground hover:text-foreground hover:bg-zinc-800/50" />
           
           <div className="h-4 w-[1px] bg-zinc-800 mx-2 hidden md:block" />
           
@@ -78,7 +78,7 @@ export default function DashboardLayout({
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <div className="flex items-center gap-3 cursor-pointer group">
-                  <span className="text-sm font-medium text-zinc-200 group-hover:text-emerald-400 transition-colors">
+                  <span className="hidden sm:inline-block text-sm font-medium text-zinc-200 group-hover:text-emerald-400 transition-colors">
                     {session.user.name || session.user.email?.split('@')[0]}
                   </span>
                   
@@ -86,12 +86,12 @@ export default function DashboardLayout({
                     <Image
                       src={session.user.image}
                       alt={session.user.name || "Profile"}
-                      width={40}
-                      height={40}
-                      className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500/50 group-hover:border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.6)]"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-emerald-500/50 group-hover:border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.6)]"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-emerald-500/10 border-2 border-emerald-500/50 group-hover:border-emerald-500 flex items-center justify-center text-emerald-500 font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_15px_rgba(16,185,129,0.6)] transition-all duration-300 group-hover:scale-110">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-500/10 border-2 border-emerald-500/50 group-hover:border-emerald-500 flex items-center justify-center text-emerald-500 font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_15px_rgba(16,185,129,0.6)] transition-all duration-300 group-hover:scale-110">
                       {session.user.name?.charAt(0).toUpperCase() || session.user.email?.charAt(0).toUpperCase() || "A"}
                     </div>
                   )}
@@ -116,7 +116,7 @@ export default function DashboardLayout({
                 </Link>
                 <DropdownMenuItem 
                   className="cursor-pointer text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 focus:bg-rose-500/10 focus:text-rose-400"
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={async () => { await signOut({ redirect: false }); window.location.href = "/login"; }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
@@ -127,7 +127,7 @@ export default function DashboardLayout({
           {/* === END BAGIAN PROFIL USER === */}
 
         </header>
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6">
           {children}
         </main>
       </SidebarInset>

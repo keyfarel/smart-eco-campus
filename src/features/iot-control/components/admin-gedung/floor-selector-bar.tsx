@@ -3,12 +3,13 @@
 interface FloorSelectorBarProps {
   activeFloor: string
   setActiveFloor: (floor: string) => void
+  availableFloors: string[]
 }
 
-export function FloorSelectorBar({ activeFloor, setActiveFloor }: FloorSelectorBarProps) {
+export function FloorSelectorBar({ activeFloor, setActiveFloor, availableFloors }: FloorSelectorBarProps) {
   return (
     <div className="flex items-center gap-2 pb-1 overflow-x-auto scrollbar-none border-b border-zinc-850/50">
-      {["Semua", "Lantai 5", "Lantai 6", "Lantai 7", "Lantai 8"].map((floor) => (
+      {availableFloors.map((floor) => (
         <button
           key={floor}
           onClick={() => setActiveFloor(floor)}

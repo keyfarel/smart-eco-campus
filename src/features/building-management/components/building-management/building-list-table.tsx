@@ -55,7 +55,96 @@ export function BuildingListTable({
   }
 
   return (
-    <div className="w-full overflow-hidden">
+    <>
+      {/* Mobile View (Cards) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {buildingsList.map((building) => {
+          const roomsCount = building.roomsCount || building.floorsCount * 4
+          const hasDevices = building.activeDevicesCount > 0
+
+          return (
+            <div key={`mobile-${building.id}`} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+              {/* Main Info */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-500 shrink-0">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-zinc-150 truncate">{building.name}</span>
+                  <span className="text-[10px] text-zinc-550 font-mono tracking-wider mt-0.5 uppercase truncate">
+                    {building.code ? `KODE: ${building.code} • ID: ${building.id}` : `ID: ${building.id}`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Metrics */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2 flex flex-col items-center justify-center gap-1">
+                  <Layers className="w-3.5 h-3.5 text-zinc-500" />
+                  <span className="text-[10px] font-mono text-zinc-400">{building.floorsCount} Flr</span>
+                </div>
+                <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2 flex flex-col items-center justify-center gap-1">
+                  <DoorOpen className="w-3.5 h-3.5 text-zinc-500" />
+                  <span className="text-[10px] font-mono text-zinc-400">{roomsCount} Rms</span>
+                </div>
+                <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2 flex flex-col items-center justify-center gap-1">
+                  <div className={`w-1.5 h-1.5 rounded-full ${hasDevices ? "bg-emerald-500 animate-pulse" : "bg-zinc-600"}`} />
+                  <span className={`text-[10px] font-mono ${hasDevices ? "text-emerald-400" : "text-zinc-500"}`}>
+                    {building.activeDevicesCount} IoT
+                  </span>
+                </div>
+              </div>
+
+              {/* Footer: Date + Actions */}
+              <div className="flex justify-between items-center mt-1 pt-3 border-t border-zinc-800/60">
+                <span className="text-[11px] text-zinc-500 font-mono tracking-tight">
+                  {new Date(building.createdAt * 1000).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                </span>
+                <div className="flex items-center justify-end gap-1.5">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onViewBuilding(building)}
+                    className="w-8 h-8 rounded-lg text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onEditBuilding(building)}
+                    className="w-8 h-8 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  {building.id === "gedung_a" || building.id === "gedung_b" ? (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      disabled
+                      className="w-8 h-8 rounded-lg text-zinc-600 border border-transparent opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onDeleteBuilding(building.id)}
+                      className="w-8 h-8 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop View (Table) */}
+      <div className="hidden md:block w-full overflow-hidden rounded-lg border border-zinc-800 bg-background">
       <Table>
         <TableHeader className="bg-zinc-900/80 border-b border-zinc-800">
           <TableRow className="border-zinc-800 hover:bg-transparent">
@@ -185,7 +274,8 @@ export function BuildingListTable({
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+    </>
   )
 }
 

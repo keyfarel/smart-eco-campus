@@ -15,10 +15,10 @@ export default async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     if (userRole === "SUPER_ADMIN") {
       url.pathname = "/super-admin";
-    } else if (userRole === "EXECUTIVE") {
-      url.pathname = "/executive";
-    } else {
+    } else if (userRole === "ADMIN_GEDUNG") {
       url.pathname = "/admin-gedung";
+    } else {
+      url.pathname = "/api/auth/signout"; // Fallback for invalid/obsolete roles to clear session
     }
     return NextResponse.redirect(url);
   };
@@ -37,7 +37,6 @@ export default async function proxy(req: NextRequest) {
   const protectedRoutes = [
     "/super-admin",
     "/admin-gedung",
-    "/executive",
     "/account"
   ];
 
@@ -56,16 +55,19 @@ export default async function proxy(req: NextRequest) {
 
     const userRole = token.role as string;
 
+    // Proteksi sesi dari role yang sudah dihapus (seperti EXECUTIVE)
+    if (userRole !== "SUPER_ADMIN" && userRole !== "ADMIN_GEDUNG") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/api/auth/signout";
+      return NextResponse.redirect(url);
+    }
+
     // 2. Proteksi Halaman Khusus Peran (Strict Role-Based Guards)
     if (pathname.startsWith("/super-admin") && userRole !== "SUPER_ADMIN") {
       return getRoleDashboardRedirect(userRole);
     }
 
     if (pathname.startsWith("/admin-gedung") && userRole !== "ADMIN_GEDUNG") {
-      return getRoleDashboardRedirect(userRole);
-    }
-
-    if (pathname.startsWith("/executive") && userRole !== "EXECUTIVE") {
       return getRoleDashboardRedirect(userRole);
     }
   }
@@ -80,8 +82,6 @@ export const config = {
     "/super-admin",
     "/admin-gedung/:path*",
     "/admin-gedung",
-    "/executive/:path*",
-    "/executive",
     "/account/:path*",
     "/account"
   ],

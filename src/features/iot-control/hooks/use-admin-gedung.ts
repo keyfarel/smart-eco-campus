@@ -38,12 +38,25 @@ export function useAdminGedung() {
       .map(r => r.name)
   }, [currentBuilding, devices])
 
+  // 🏢 Floor Discovery: Only show floors that have rooms with registered IoT devices
+  const availableFloors = useMemo(() => {
+    if (!currentBuilding?.rooms) return ["Semua"]
+    const floors = new Set<number>()
+    
+    currentBuilding.rooms.forEach(room => {
+      if (rooms.includes(room.name)) {
+        floors.add(room.floor)
+      }
+    })
+    
+    const floorList = Array.from(floors).sort((a, b) => a - b).map(f => `Lantai ${f}`)
+    return ["Semua", ...floorList]
+  }, [currentBuilding, rooms])
+
   const [showCamera, setShowCamera] = useState(true)
   const [showRoomCards, setShowRoomCards] = useState(true)
   const [cinemaMode, setCinemaMode] = useState(false)
   const [activeFloor, setActiveFloor] = useState("Semua")
-  const [isPatrolling, setIsPatrolling] = useState(false)
-  const [patrolCountdown, setPatrolCountdown] = useState(5)
 
   // Grace Period & Auto-Cutoff Simulation for AI Auto Mode
   // LOGIC MOVED TO PYTHON YOLO BACKEND
@@ -100,30 +113,6 @@ export function useAdminGedung() {
     }
   }, [filteredRooms, activeRoom, setActiveRoom])
 
-  // CCTV Auto-Patrol Loop
-  useEffect(() => {
-    if (!isPatrolling) {
-      setPatrolCountdown(5)
-      return
-    }
-
-    const interval = setInterval(() => {
-      setPatrolCountdown((prev) => {
-        if (prev <= 1) {
-          setActiveRoom((current) => {
-            const currentIndex = filteredRooms.indexOf(current)
-            if (currentIndex === -1 || filteredRooms.length <= 1) return current
-            const nextIndex = (currentIndex + 1) % filteredRooms.length
-            return filteredRooms[nextIndex]
-          })
-          return 5 // Reset to 5 seconds
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [isPatrolling, filteredRooms, setActiveRoom])
 
   // Get active room details
   const activeRoomData = allRoomsData[activeRoom]
@@ -135,6 +124,17 @@ export function useAdminGedung() {
     if (activeRoomData.lampsOn) activeDevices.push("Lampu")
     if (activeRoomData.acOn) activeDevices.push("AC")
     if (activeRoomData.plugOn) activeDevices.push("Stopkontak")
+  }
+
+  const getRoomMode = (roomName: string) => {
+    const roomObj = currentBuilding?.rooms?.find(r => r.name === roomName)
+    const roomId = roomObj?.id || roomName
+    return roomAutomation[roomId] !== false ? "AUTO" : "OVERRIDE"
+  }
+
+  const getRoomCode = (roomName: string) => {
+    const roomObj = currentBuilding?.rooms?.find(r => r.name === roomName)
+    return roomObj?.code?.toUpperCase() || roomName
   }
 
   return {
@@ -157,9 +157,6 @@ export function useAdminGedung() {
     setCinemaMode,
     activeFloor,
     setActiveFloor,
-    isPatrolling,
-    setIsPatrolling,
-    patrolCountdown,
 
     handleSetOccupancy,
     filteredRooms,
@@ -168,6 +165,9 @@ export function useAdminGedung() {
     floorName,
     activeDevices,
     currentBuildingName,
+    availableFloors,
+    getRoomMode,
+    getRoomCode,
   }
 }
 

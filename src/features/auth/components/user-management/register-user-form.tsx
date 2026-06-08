@@ -25,8 +25,8 @@ interface RegisterUserFormProps {
   onPasswordChange: (val: string) => void
   confirmPassword: string
   onConfirmPasswordChange: (val: string) => void
-  role: "super_admin" | "admin_gedung" | "executive"
-  onRoleChange: (val: "super_admin" | "admin_gedung" | "executive") => void
+  role: "super_admin" | "admin_gedung"
+  onRoleChange: (val: "super_admin" | "admin_gedung") => void
   assignedGedung: string
   onAssignedGedungChange: (val: string) => void
   isSubmitting: boolean
@@ -152,10 +152,9 @@ export function RegisterUserForm({
               <SelectTrigger id="role" className="bg-zinc-950 border-zinc-800 focus-visible:border-emerald-500 focus-visible:ring-emerald-500 disabled:bg-zinc-900 disabled:text-zinc-400 disabled:border-zinc-800 disabled:cursor-not-allowed disabled:opacity-100 transition-all">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-800">
-                <SelectItem value="super_admin">Super Admin</SelectItem>
-                <SelectItem value="admin_gedung">Admin Gedung (Teknisi)</SelectItem>
-                <SelectItem value="executive">Executive (Rektorat)</SelectItem>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300">
+                <SelectItem value="super_admin">Super Admin (IT Infrastructure)</SelectItem>
+                <SelectItem value="admin_gedung">Building Admin (Field Operator)</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -10,8 +10,6 @@ interface AdminGedungHeaderProps {
   setShowRoomCards: (val: boolean) => void;
   cinemaMode: boolean;
   setCinemaMode: (val: boolean) => void;
-  isPatrolling: boolean;
-  setIsPatrolling: (val: boolean) => void;
 }
 
 export function AdminGedungHeader({
@@ -22,92 +20,38 @@ export function AdminGedungHeader({
   setShowRoomCards,
   cinemaMode,
   setCinemaMode,
-  isPatrolling,
-  setIsPatrolling,
 }: AdminGedungHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-          <Building2 className="w-6 h-6" />
+      <div className="flex items-start md:items-center gap-3 md:gap-4">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+          <Building2 className="w-5 h-5 md:w-6 md:h-6" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Live Monitoring</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight truncate">Live Monitoring</h1>
+            <span className="px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] md:text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5 md:mt-1 shrink-0">
               {currentBuildingName}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Real-time IoT metrics and AI camera streaming for building administrators
+          <p className="text-[11px] md:text-sm text-muted-foreground truncate md:whitespace-normal">
+            <span className="hidden md:inline">Real-time IoT metrics and AI camera streaming for building administrators</span>
+            <span className="md:hidden">Real-time IoT & AI monitoring</span>
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => {
-            setShowCamera(!showCamera);
-            if (showCamera) setCinemaMode(false);
-          }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300 ${
-            showCamera
-              ? "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-foreground"
-              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-          }`}
-        >
-          {showCamera ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          <span>{showCamera ? "Sembunyikan Video" : "Tampilkan Video"}</span>
-        </button>
-
+      <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
         <button
           onClick={() => setShowRoomCards(!showRoomCards)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300 ${
+          className={`flex items-center justify-center md:justify-start gap-1.5 px-2 py-1.5 md:px-3 rounded-lg border text-[11px] md:text-xs font-bold transition-all duration-300 w-full md:w-auto ${
             showRoomCards
               ? "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-855 hover:text-foreground"
               : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
           }`}
         >
-          {showRoomCards ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          <span>{showRoomCards ? "Sembunyikan Kelas" : "Tampilkan Kelas"}</span>
-        </button>
-
-        {showCamera && (
-          <button
-            onClick={() => setCinemaMode(!cinemaMode)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300 ${
-              !cinemaMode
-                ? "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-foreground"
-                : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-            }`}
-          >
-            {cinemaMode ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            <span>{cinemaMode ? "Normal View" : "Cinema Mode"}</span>
-          </button>
-        )}
-
-        <button
-          onClick={() => setIsPatrolling(!isPatrolling)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300 ${
-            isPatrolling
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:bg-emerald-500/20"
-              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-foreground"
-          }`}
-        >
-          {isPatrolling ? (
-            <>
-              <Pause className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="flex items-center gap-1">
-                <span>Auto Patrol</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              </span>
-            </>
-          ) : (
-            <>
-              <Play className="w-3.5 h-3.5 text-zinc-450" />
-              <span>Auto Patrol</span>
-            </>
-          )}
+          {showRoomCards ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
+          <span className="truncate">{showRoomCards ? "Hide Rooms" : "Show Rooms"}</span>
         </button>
       </div>
     </div>

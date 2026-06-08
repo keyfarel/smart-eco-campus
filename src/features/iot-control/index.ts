@@ -15,7 +15,3 @@ export { AdminGedungView } from "./views/admin-gedung-view"
 export { DeviceControlView } from "./views/device-control-view"
 export { default as BuildingInventoryView } from "./views/building-inventory-view"
 export { GlobalDeviceManagementView } from "./views/global-device-management-view"
-export { BuildingManagementView } from "@/features/building-management/views/building-management-view"
-export { useBuildings } from "@/features/building-management/hooks/use-buildings"
-export type { Building } from "@/features/building-management/types/building"
-

@@ -3,7 +3,9 @@
 import { useBuildingInventory } from "../hooks/use-building-inventory";
 import { InventoryHeader } from "../components/building-inventory/inventory-header";
 import { InventoryStats } from "../components/building-inventory/inventory-stats";
+import { InventoryFilters } from "../components/building-inventory/inventory-filters";
 import { InventoryTable } from "../components/building-inventory/inventory-table-paginated";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function BuildingInventoryView() {
   const {
@@ -56,16 +58,31 @@ export default function BuildingInventoryView() {
 
       <InventoryStats stats={stats} />
 
-      {/* Inventory Table with Pagination */}
-      <InventoryTable 
-        rooms={inventoryData} 
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        totalItems={totalItems}
-        startIndex={startIndex}
-        endIndex={endIndex}
-      />
+      {/* Inventory Table Card */}
+      <Card className="bg-background border-zinc-800">
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-end gap-4 md:gap-0 pb-4 md:pb-2">
+          <InventoryFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            floorFilter={floorFilter}
+            setFloorFilter={setFloorFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            floors={floors}
+          />
+        </CardHeader>
+        <CardContent>
+          <InventoryTable 
+            rooms={inventoryData} 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            startIndex={startIndex}
+            endIndex={endIndex}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -10,8 +10,10 @@ interface RoomNavigationSectionProps {
   filteredRooms: any[];
   activeRoom: string;
   setActiveRoom: (val: string) => void;
-  setIsPatrolling: (val: boolean) => void;
   allRoomsData: Record<string, any>;
+  availableFloors: string[];
+  getRoomMode: (roomName: string) => "AUTO" | "OVERRIDE";
+  getRoomCode: (roomName: string) => string;
 }
 
 export function RoomNavigationSection({
@@ -21,14 +23,16 @@ export function RoomNavigationSection({
   filteredRooms,
   activeRoom,
   setActiveRoom,
-  setIsPatrolling,
   allRoomsData,
+  availableFloors,
+  getRoomMode,
+  getRoomCode,
 }: RoomNavigationSectionProps) {
   if (!showRoomCards) return null;
 
   return (
     <>
-      <FloorSelectorBar activeFloor={activeFloor} setActiveFloor={setActiveFloor} />
+      <FloorSelectorBar activeFloor={activeFloor} setActiveFloor={setActiveFloor} availableFloors={availableFloors} />
       
       {filteredRooms.length === 0 ? (
         <div className="bg-zinc-900/50 border border-zinc-800/60 rounded-xl p-8 text-center flex flex-col items-center">
@@ -47,8 +51,9 @@ export function RoomNavigationSection({
           filteredRooms={filteredRooms}
           activeRoom={activeRoom}
           setActiveRoom={setActiveRoom}
-          setIsPatrolling={setIsPatrolling}
           allRoomsData={allRoomsData}
+          getRoomMode={getRoomMode}
+          getRoomCode={getRoomCode}
         />
       )}
     </>

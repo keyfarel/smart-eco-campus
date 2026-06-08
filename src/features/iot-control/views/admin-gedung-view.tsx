@@ -22,15 +22,15 @@ export function AdminGedungView() {
     setCinemaMode,
     activeFloor,
     setActiveFloor,
-    isPatrolling,
-    setIsPatrolling,
-    patrolCountdown,
     filteredRooms,
     activeRoomData,
     floorName,
     activeDevices,
     allRoomsData,
     currentBuildingName,
+    availableFloors,
+    getRoomMode,
+    getRoomCode,
   } = useAdminGedung()
 
   return (
@@ -43,8 +43,6 @@ export function AdminGedungView() {
         setShowRoomCards={setShowRoomCards}
         cinemaMode={cinemaMode}
         setCinemaMode={setCinemaMode}
-        isPatrolling={isPatrolling}
-        setIsPatrolling={setIsPatrolling}
       />
 
       <RoomNavigationSection
@@ -54,8 +52,10 @@ export function AdminGedungView() {
         filteredRooms={filteredRooms}
         activeRoom={activeRoom}
         setActiveRoom={setActiveRoom}
-        setIsPatrolling={setIsPatrolling}
         allRoomsData={allRoomsData}
+        availableFloors={availableFloors}
+        getRoomMode={getRoomMode}
+        getRoomCode={getRoomCode}
       />
 
       <MonitoringGridSection
@@ -64,8 +64,6 @@ export function AdminGedungView() {
         systemStatus={systemStatus}
         activeRoom={activeRoom}
         activeRoomId={activeRoomId}
-        isPatrolling={isPatrolling}
-        patrolCountdown={patrolCountdown}
         floorName={floorName}
         activeRoomData={activeRoomData}
         activeDevices={activeDevices}

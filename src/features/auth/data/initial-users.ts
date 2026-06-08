@@ -19,12 +19,4 @@ export const INITIAL_DEMO_USERS: UserRecord[] = [
     password: "admingedung123",
     created_at: 177905000,
   },
-  {
-    uid: "uid_executive_1",
-    name: "Prof. Rektor",
-    email: "executive@ecocampus.id",
-    role: "executive",
-    password: "executive123",
-    created_at: 1779010000,
-  },
 ]

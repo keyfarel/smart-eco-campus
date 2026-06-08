@@ -4,6 +4,7 @@ import "./globals.css";
 
 // 1. Tambahkan import ini (Pastikan path-nya sesuai dengan letak file Providers kamu)
 import { Providers } from "@/components/providers/providers";
+import { GlobalAICamera } from "@/components/global-ai-camera";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
         {/* 2. Bungkus children dengan komponen Providers */}
         <Providers>
           {children}
+          <GlobalAICamera />
         </Providers>
       </body>
     </html>

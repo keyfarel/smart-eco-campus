@@ -33,23 +33,21 @@ export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialog
         </div>
 
         {viewedUser && (
-          <div className="p-6 pt-4 pb-4 space-y-6 max-h-[55vh] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-zinc-855 scrollbar-track-transparent">
+          <div className="p-6 pt-4 pb-4 space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
             {/* Profile Header */}
             <div className="flex items-center gap-4">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl shrink-0 select-none ${
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl shrink-0 select-none shadow-[0_0_30px_rgba(0,0,0,0.5)] ${
                 viewedUser.role === "super_admin"
-                  ? "bg-red-500/10 border border-red-500/20 text-red-400 animate-[pulse_3s_infinite]"
-                  : viewedUser.role === "executive"
-                  ? "bg-blue-500/10 border border-blue-500/20 text-blue-400"
-                  : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                  ? "bg-red-500/10 border-2 border-red-500/20 text-red-400 shadow-red-500/10"
+                  : "bg-emerald-500/10 border-2 border-emerald-500/20 text-emerald-400 shadow-emerald-500/10"
               }`}>
                 {viewedUser.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-bold text-zinc-150 truncate">{viewedUser.name}</h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-                    ACTIVE
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Active
                   </span>
                 </div>
                 <span className="text-xs text-zinc-500 font-mono flex items-center gap-1.5 mt-1 truncate">
@@ -60,9 +58,9 @@ export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialog
             </div>
 
             {/* Data Section 1: Core Credentials info */}
-            <div className="space-y-2">
-              <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">System Identity & Scope</h4>
-              <div className="grid grid-cols-2 gap-3 bg-zinc-950 border border-zinc-850 p-4 rounded-lg">
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-zinc-400">System Identity & Scope</h4>
+              <div className="grid grid-cols-2 gap-4 bg-zinc-900/50 border border-zinc-800/60 p-4 rounded-xl">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] text-zinc-500 font-medium">User Unique ID</span>
                   <span className="text-xs text-zinc-300 font-mono truncate">{viewedUser.uid}</span>
@@ -80,9 +78,9 @@ export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialog
                   <span className="text-[10px] text-zinc-500 font-medium">RBAC Security Role</span>
                   <div className="flex items-center gap-1.5">
                     <Shield className={`w-3.5 h-3.5 ${
-                      viewedUser.role === "super_admin" ? "text-red-400" : viewedUser.role === "executive" ? "text-blue-400" : "text-emerald-400"
+                      viewedUser.role === "super_admin" ? "text-red-400" : "text-emerald-400"
                     }`} />
-                    <span className="text-xs text-zinc-300 font-semibold uppercase">{viewedUser.role.replace("_", " ")}</span>
+                    <span className="text-xs text-zinc-300 font-medium capitalize">{viewedUser.role.replace("_", " ")}</span>
                   </div>
                 </div>
 
@@ -99,24 +97,20 @@ export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialog
             </div>
 
             {/* Data Section 2: Security & Permissions level */}
-            <div className="space-y-2">
-              <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Access Controls & Activity</h4>
-              <div className="grid grid-cols-2 gap-3 bg-zinc-950 border border-zinc-850 p-4 rounded-lg">
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-zinc-400">Access Controls & Activity</h4>
+              <div className="grid grid-cols-2 gap-4 bg-zinc-900/50 border border-zinc-800/60 p-4 rounded-xl">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] text-zinc-500 font-medium">Security Clearance</span>
-                  <span className={`text-xs font-semibold ${
+                  <div className={`p-2.5 rounded-xl border ${
                     viewedUser.role === "super_admin"
-                      ? "text-red-400"
-                      : viewedUser.role === "executive"
-                      ? "text-blue-400"
-                      : "text-emerald-400"
+                      ? "bg-red-500/5 border-red-500/10 text-red-400"
+                      : "bg-emerald-500/5 border-emerald-500/10 text-emerald-400"
                   }`}>
                     {viewedUser.role === "super_admin"
                       ? "Level 3 (Full Read/Write)"
-                      : viewedUser.role === "executive"
-                      ? "Level 1 (Read-Only Insights)"
                       : "Level 2 (Building Maintainer)"}
-                  </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -154,14 +148,12 @@ export function UserDetailDialog({ viewedUser, setViewedUser }: UserDetailDialog
             </div>
 
             {/* Data Section 3: Privileges Description */}
-            <div className="p-3 bg-zinc-900/60 border border-zinc-850 rounded-lg text-[11px] text-zinc-400 flex items-start gap-2.5">
-              <Fingerprint className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 animate-pulse" />
-              <div>
-                <span className="font-semibold text-zinc-300 block mb-0.5">RBAC Scope Privileges</span>
+            <div className="p-4 bg-zinc-900/50 border border-zinc-800/60 rounded-xl text-xs text-zinc-400 flex items-start gap-3">
+              <Fingerprint className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-semibold text-zinc-300 block mb-1">RBAC Scope Privileges</span>
                 {viewedUser.role === "super_admin"
                   ? "Memiliki otoritas penuh atas administrasi fisik gedung, sensor IoT, registrasi kredensial operator, dan audit sistem global."
-                  : viewedUser.role === "executive"
-                  ? "Memiliki hak akses analitis komprehensif atas konsumsi daya energi dan air kampus secara real-time (hanya baca)."
                   : "Terbatas untuk memantau status perangkat sensor, mengubah konfigurasi sensor, dan membaca log lokal pada gedung yang ditugaskan."}
               </div>
             </div>

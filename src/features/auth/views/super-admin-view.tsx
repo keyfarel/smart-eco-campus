@@ -5,11 +5,11 @@ import { useState, useEffect } from "react"
 import { motion, Variants } from "framer-motion"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { MethodologyDialog } from "@/features/analytics/components/analytics/methodology-dialog"
+
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { StatsCards } from "@/features/analytics/components/analytics/stats-cards"
 import { UsagePatternChart } from "@/features/analytics/components/analytics/usage-pattern-chart"
-import { UsageDistributionChart } from "@/features/analytics/components/analytics/usage-distribution-chart"
+
 import { ChartData, AnalyticsStats } from "@/features/analytics/services/analytics-service"
 import { Shield, Server, Activity, Users, DatabaseBackup, Loader2 } from "lucide-react"
 import { useSuperAdminStats } from "../hooks/use-super-admin-stats"
@@ -131,62 +131,30 @@ export function SuperAdminView({
           {/* SINGLE UNIFIED HEADER WITH REALTIME BADGES */}
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 pb-6">
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-emerald-500" />
-                  <span className="text-xs font-mono font-bold tracking-wider text-emerald-500 uppercase">Super Admin Portal</span>
-                </div>
-                <h1 className="text-2xl font-bold text-foreground">Pusat Kendali & Analitik</h1>
-                <p className="text-sm text-muted-foreground max-w-xl">
-                  Sistem manajemen terpusat untuk topologi IoT, pemantauan telemetri real-time, dan analitik energi kampus.
+              <div className="flex flex-col gap-0.5 sm:gap-2">
+                <h1 className="text-lg sm:text-2xl font-bold text-foreground leading-tight">Dashboard IoT</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
+                  Pantau Telemetri & Energi Real-time
                 </p>
               </div>
 
-              {/* Realtime Badges */}
-              <div className="flex items-center gap-3 flex-wrap mt-2">
-                <div className="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg shadow-sm">
-                  <span className="relative flex h-2 w-2 mr-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <Server className="w-3.5 h-3.5 text-zinc-400" />
-                  <span className="text-xs text-zinc-400 font-medium">Node Aktif:</span>
-                  <span className="text-xs font-bold text-emerald-400">{realtimeStats.activeNodes}</span>
-                </div>
 
-                <div className="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg shadow-sm">
-                  <Activity className="w-3.5 h-3.5 text-zinc-400" />
-                  <span className="text-xs text-zinc-400 font-medium">Beban:</span>
-                  <span className="text-xs font-bold text-emerald-400">
-                    {realtimeStats.powerLoad >= 1000 
-                      ? `${(realtimeStats.powerLoad / 1000).toFixed(2)} kW` 
-                      : `${(realtimeStats.powerLoad || 0).toFixed(1)} W`}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg shadow-sm">
-                  <Users className="w-3.5 h-3.5 text-zinc-400" />
-                  <span className="text-xs text-zinc-400 font-medium">Users:</span>
-                  <span className="text-xs font-bold text-emerald-400">{realtimeStats.userCount}</span>
-                </div>
-              </div>
             </div>
 
             {/* Time Controls moved to Main Header */}
-            <div className="flex items-center gap-3">
-              <MethodologyDialog />
-              <Tabs value={timeRange} onValueChange={handleTimeRangeChange} className="w-fit">
-                <TabsList className="bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
-                  <TabsTrigger value="live" className="relative overflow-hidden rounded-lg data-[state=active]:bg-red-500 data-[state=active]:text-white transition-all text-xs font-bold h-7 px-4 flex items-center gap-1.5">
+            <div className="flex w-full sm:w-auto mt-2 sm:mt-0">
+              <Tabs value={timeRange} onValueChange={handleTimeRangeChange} className="w-full sm:w-fit">
+                <TabsList className="grid w-full grid-cols-4 sm:inline-flex bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto">
+                  <TabsTrigger value="live" className="relative overflow-hidden rounded-lg data-[state=active]:bg-red-500 data-[state=active]:text-white transition-all text-[10px] sm:text-xs font-bold h-8 sm:h-7 px-1 sm:px-4 flex items-center justify-center gap-1.5">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
                     </span>
                     Live
                   </TabsTrigger>
-                  <TabsTrigger value="24h" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-xs font-semibold h-7 px-4">Daily</TabsTrigger>
-                  <TabsTrigger value="7d" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-xs font-semibold h-7 px-4">Weekly</TabsTrigger>
-                  <TabsTrigger value="30d" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-xs font-semibold h-7 px-4">Monthly</TabsTrigger>
+                  <TabsTrigger value="24h" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-[10px] sm:text-xs font-semibold h-8 sm:h-7 px-1 sm:px-4">Daily</TabsTrigger>
+                  <TabsTrigger value="7d" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-[10px] sm:text-xs font-semibold h-8 sm:h-7 px-1 sm:px-4">Weekly</TabsTrigger>
+                  <TabsTrigger value="30d" className="rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all text-[10px] sm:text-xs font-semibold h-8 sm:h-7 px-1 sm:px-4">Monthly</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -202,17 +170,12 @@ export function SuperAdminView({
           </div>
 
           {/* Analytics Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
+        <div className="grid grid-cols-1 gap-6 pb-12">
           <UsagePatternChart 
             data={isLiveMode ? liveChartData : mainData} 
             chartVariants={cardVariants} 
             isEmpty={displayIsEmpty} 
             isLiveMode={isLiveMode}
-          />
-
-          <UsageDistributionChart 
-            chartVariants={cardVariants} 
-            isEmpty={displayIsEmpty}
           />
         </div>
       </motion.div>

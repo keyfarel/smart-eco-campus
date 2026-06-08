@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Cpu, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
 interface UnregisteredAlertProps {
   unregisteredList: string[]
@@ -15,15 +15,10 @@ export function UnregisteredAlert({
   const isMultiple = unregisteredList.length > 1
 
   return (
-    <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg p-3.5 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_0_15px_rgba(16,185,129,0.05)] animate-pulse">
-      <div className="flex items-start gap-3 min-w-0 flex-1">
-        <div className="w-8.5 h-8.5 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-          <Cpu className="w-4.5 h-4.5 text-emerald-400" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-450 animate-ping"></span>
-            <span>Perangkat IoT Baru Terdeteksi!</span>
+    <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg p-3 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-[0_0_15px_rgba(16,185,129,0.05)] animate-[pulse_3s_ease-in-out_infinite]">
+      <div className="min-w-0 flex-1 w-full">
+        <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+          <span>Perangkat IoT Baru Terdeteksi!</span>
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded font-mono font-bold ml-1 border border-emerald-500/10">
               +{unregisteredList.length} Device
             </span>
@@ -35,12 +30,14 @@ export function UnregisteredAlert({
               <span className="font-mono font-bold text-emerald-400 bg-zinc-950 border border-zinc-800 px-1.5 py-0.5 rounded text-[10px]">
                 {unregisteredList[0]}
               </span>{" "}
-              online di jaringan kampus. Petakan sekarang untuk mengaktifkan pemantauan.
+              <span className="hidden md:inline">online di jaringan kampus. Petakan sekarang untuk mengaktifkan pemantauan.</span>
+              <span className="md:hidden">menunggu registrasi.</span>
             </p>
           ) : (
             <div className="mt-2">
               <p className="text-xs text-muted-foreground">
-                Sistem mendeteksi {unregisteredList.length} perangkat online. Klik salah satu MAC Address di bawah untuk mulai memetakan perangkat tersebut:
+                <span className="hidden md:inline">Sistem mendeteksi {unregisteredList.length} perangkat online. Klik salah satu MAC Address di bawah untuk mulai memetakan perangkat tersebut:</span>
+                <span className="md:hidden">{unregisteredList.length} perangkat online. Pilih untuk daftar:</span>
               </p>
               <div className="flex flex-wrap gap-2 mt-2.5">
                 {unregisteredList.map((mac) => (
@@ -58,7 +55,6 @@ export function UnregisteredAlert({
             </div>
           )}
         </div>
-      </div>
 
       {!isMultiple && (
         <Button

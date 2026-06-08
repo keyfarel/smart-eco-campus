@@ -26,8 +26,8 @@ export function TelemetryGauges({ metrics }: TelemetryGaugesProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="py-8">
-        <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-20">
+      <CardContent className="py-6 md:py-8">
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 lg:gap-20">
           <RadialGauge
             value={metrics.watt}
             maxValue={500}

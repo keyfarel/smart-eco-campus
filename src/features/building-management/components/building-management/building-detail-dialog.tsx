@@ -17,18 +17,12 @@ import { ref, onValue } from "firebase/database"
 interface BuildingDetailDialogProps {
   viewedBuilding: Building | null
   setViewedBuilding: (building: Building | null) => void
-  onOpenAddRoom: () => void
-  onEditRoom: (room: Room) => void
-  onDeleteRoom: (roomId: string, buildingId: string) => void
   onClose: () => void
 }
 
 export function BuildingDetailDialog({
   viewedBuilding,
   setViewedBuilding,
-  onOpenAddRoom,
-  onEditRoom,
-  onDeleteRoom,
   onClose,
 }: BuildingDetailDialogProps) {
   const [buildingNodes, setBuildingNodes] = useState<any[]>([])
@@ -139,14 +133,6 @@ export function BuildingDetailDialog({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Real Room Topology Map</h4>
-                <Button
-                  size="sm"
-                  onClick={onOpenAddRoom}
-                  className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold h-7 px-3 flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(16,185,129,0.05)]"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  <span>Register Room</span>
-                </Button>
               </div>
 
               <div className="space-y-4 bg-zinc-950 border border-zinc-850 p-4 rounded-lg max-h-[300px] overflow-y-auto scrollbar-thin">
@@ -189,24 +175,6 @@ export function BuildingDetailDialog({
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => onEditRoom(room)}
-                                    className="w-6 h-6 rounded-md text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 opacity-0 group-hover/room:opacity-100 transition-all duration-150 cursor-pointer"
-                                    title="Edit Ruangan"
-                                  >
-                                    <Pencil className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => onDeleteRoom(room.id, viewedBuilding.id)}
-                                    className="w-6 h-6 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 opacity-0 group-hover/room:opacity-100 transition-all duration-150 cursor-pointer"
-                                    title="Hapus Ruangan"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
                                   <span className="text-[8px] font-mono bg-zinc-950 border border-zinc-850 px-1.5 py-0.5 rounded text-zinc-400 group-hover/room:border-emerald-500/30 transition-colors">
                                     {room.code}
                                   </span>

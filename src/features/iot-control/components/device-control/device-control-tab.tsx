@@ -9,7 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DoorOpen, Lightbulb, Fan, Zap, Play, Square, Cpu, Activity, ArrowRight, Search, Building2, Layers, RotateCcw, LayoutGrid, List, ArrowDownWideNarrow } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { DoorOpen, Lightbulb, Fan, Zap, Play, Square, Cpu, Activity, ArrowRight, Search, Building2, Layers, RotateCcw, LayoutGrid, List, ArrowDownWideNarrow, ChevronDown, ChevronUp } from "lucide-react"
 import { Device } from "../../types/device"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -27,6 +35,8 @@ interface DeviceControlTabProps {
   isFirebaseReady?: boolean
   initializeFirebaseData?: () => Promise<void>
 }
+
+import { DeviceControlStats } from "./device-control-stats"
 
 export function DeviceControlTab({
   devices,
@@ -52,15 +62,19 @@ export function DeviceControlTab({
 
   const { allRoomsData } = useBuildingTelemetry()
 
-  // Layout mode state
-  const [viewMode, setViewMode] = useState<"grid" | "table">("table")
-
   // Filtering & Sorting states
   const [roomSearch, setRoomSearch] = useState("")
   const [buildingFilter, setBuildingFilter] = useState("all")
   const [floorFilter, setFloorFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortBy, setSortBy] = useState<"name" | "power">("name")
+  const [expandedRooms, setExpandedRooms] = useState<string[]>([])
+
+  const toggleRoomExpand = (roomId: string) => {
+    setExpandedRooms((prev) => 
+      prev.includes(roomId) ? prev.filter((id) => id !== roomId) : [...prev, roomId]
+    )
+  }
 
   // Helper functions
   const getRoomBuilding = (roomName: string) => {
@@ -89,8 +103,8 @@ export function DeviceControlTab({
     return roomDevices.reduce((sum, d) => sum + (d.isOn ? d.powerUsage : 0), 0)
   }
 
-  // 🏗️ Grouping & Filtering Logic (Optimized: Derived from Building Master Data)
-  const groupedRooms = useMemo(() => {
+  // 🏗️ Filtering Logic (Optimized: Derived from Building Master Data)
+  const filteredRooms = useMemo(() => {
     // Collect all rooms from buildings that should be visible to this user
     const allAvailableRooms: { id: string; name: string; buildingId: string; floor: number; code?: string }[] = []
 
@@ -135,31 +149,64 @@ export function DeviceControlTab({
       return true
     })
 
-    // Apply sorting
-    if (sortBy === "power") {
-      filtered.sort((a, b) => calculateRoomPower(b.name) - calculateRoomPower(a.name))
-    } else {
-      filtered.sort((a, b) => a.name.localeCompare(b.name))
-    }
+    filtered.sort((a, b) => a.name.localeCompare(b.name))
 
-    // Group by building
-    const groups: Record<string, typeof allAvailableRooms> = {}
-    filtered.forEach((room) => {
-      if (!groups[room.buildingId]) groups[room.buildingId] = []
-      groups[room.buildingId].push(room)
+    return filtered
+  }, [devices, buildingsList, roomSearch, buildingFilter, floorFilter, statusFilter, isBuildingAdmin, assignedGedung, isSuperAdmin, roomAutomation])
+
+  // Extract unique available floors for the filter dropdown
+  const availableFloors = useMemo(() => {
+    const floors = new Set<number>()
+    buildingsList.forEach(building => {
+      if (isBuildingAdmin && building.id !== assignedGedung) return
+      if (isSuperAdmin && buildingFilter !== "all" && building.id !== buildingFilter) return
+      ;(building.rooms || []).forEach(room => floors.add(room.floor))
     })
+    return Array.from(floors).sort((a, b) => a - b)
+  }, [buildingsList, isBuildingAdmin, assignedGedung, isSuperAdmin, buildingFilter])
 
-    return groups
-  }, [devices, buildingsList, roomSearch, buildingFilter, floorFilter, statusFilter, sortBy, isBuildingAdmin, assignedGedung, isSuperAdmin, roomAutomation])
+  // Calculate Global Stats
+  const globalStats = useMemo(() => {
+    let totalDevicesCount = 0;
+    let activeDevicesCount = 0;
+    let totalPower = 0;
+    let autoRoomsCount = 0;
 
-  const hasActiveFilters = roomSearch !== "" || buildingFilter !== "all" || floorFilter !== "all" || statusFilter !== "all" || sortBy !== "name"
+    filteredRooms.forEach(room => {
+      totalPower += calculateRoomPower(room.name);
+      
+      if (roomAutomation[room.id] !== false) {
+         autoRoomsCount++;
+      }
+
+      const roomDevices = devices.filter((d) => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')));
+      
+      const uniqueDevices = new Map();
+      roomDevices.forEach(d => {
+        const typeId = d.id.toLowerCase();
+        const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
+          : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
+          : "pcProjector";
+        if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
+      });
+
+      totalDevicesCount += uniqueDevices.size;
+      
+      Array.from(uniqueDevices.values()).forEach(d => {
+         if ((d as Device).isOn) activeDevicesCount++;
+      });
+    });
+
+    return { totalDevices: totalDevicesCount, activeDevices: activeDevicesCount, totalPower, autoRoomsCount };
+  }, [filteredRooms, devices, roomAutomation, allRoomsData]);
+
+  const hasActiveFilters = roomSearch !== "" || buildingFilter !== "all" || floorFilter !== "all" || statusFilter !== "all"
 
   const handleResetFilters = () => {
     setRoomSearch("")
     setBuildingFilter("all")
     setFloorFilter("all")
     setStatusFilter("all")
-    setSortBy("name")
   }
 
   const getDeviceIcon = (id: string) => {
@@ -171,161 +218,209 @@ export function DeviceControlTab({
 
   return (
     <div className="space-y-6 animate-fadeIn pb-20">
-      {/* 🚀 Header Bar Status & Filter Area */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-zinc-900/50 p-4 rounded-xl border border-zinc-855 backdrop-blur-md sticky top-0 z-30 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Cpu className="w-4.5 h-4.5 text-emerald-450" />
+      {/* 🚀 GLOBAL DEVICE STATS CARDS */}
+      <DeviceControlStats 
+        totalDevices={globalStats.totalDevices}
+        activeDevices={globalStats.activeDevices}
+        totalPower={globalStats.totalPower}
+        autoRoomsCount={globalStats.autoRoomsCount}
+      />
+
+      {/* 🚀 MERGED FILTER AND TABLE CARD */}
+      <Card className="bg-background border-zinc-800 shadow-sm">
+        <CardHeader className="flex flex-col sm:flex-row gap-4 justify-between pb-4">
+          <div className="flex flex-col sm:flex-row w-full gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+              <Input
+                placeholder="Cari ruangan..."
+                value={roomSearch}
+                onChange={(e) => setRoomSearch(e.target.value)}
+                className="pl-9 h-9 bg-zinc-900/50 border-zinc-800 text-xs focus-visible:ring-1 focus-visible:ring-emerald-500/50"
+              />
             </div>
-            <span className="flex h-2 w-2 relative">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${connected ? "bg-emerald-450" : "bg-red-500"}`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${connected ? "bg-emerald-500" : "bg-red-600"}`}></span>
-            </span>
+
+            {/* Filters Row */}
+            <div className="flex flex-col sm:flex-row sm:flex-nowrap gap-2 w-full sm:w-auto">
+              {isSuperAdmin && (
+                <Select value={buildingFilter} onValueChange={setBuildingFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[130px] bg-zinc-900/50 border-zinc-800 text-xs focus-visible:ring-0"><SelectValue placeholder="Semua Gedung" /></SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800 text-xs">
+                    <SelectItem value="all">Semua Gedung</SelectItem>
+                    {buildingsList.map((b) => <SelectItem key={b.id} value={b.id}>{b.name.split(" (")[0]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+
+              <Select value={floorFilter} onValueChange={setFloorFilter}>
+                <SelectTrigger className="h-9 w-full sm:w-[130px] bg-zinc-900/50 border-zinc-800 text-xs focus-visible:ring-0">
+                  <div className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-zinc-500" /><SelectValue placeholder="Lantai" /></div>
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-zinc-800 text-xs">
+                  <SelectItem value="all">Semua Lantai</SelectItem>
+                  {availableFloors.map(floor => (
+                    <SelectItem key={`lantai_${floor}`} value={`lantai_${floor}`}>Lantai {floor}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-full sm:w-[140px] bg-zinc-900/50 border-zinc-800 text-xs focus-visible:ring-0">
+                  <div className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-zinc-500" /><SelectValue placeholder="Status" /></div>
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-zinc-800 text-xs">
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="active">Perangkat Aktif</SelectItem>
+                  <SelectItem value="inactive">Perangkat Padam</SelectItem>
+                  <SelectItem value="auto">Mode AI Auto</SelectItem>
+                  <SelectItem value="override">Manual Override</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={handleResetFilters} className="h-9 w-full sm:w-9 p-0 text-zinc-400 hover:text-red-400 hover:bg-red-500/10">
+                  <RotateCcw className="w-3.5 h-3.5 mr-2 sm:mr-0" />
+                  <span className="sm:hidden text-xs">Reset Filter</span>
+                </Button>
+              )}
+            </div>
           </div>
-
-          <div className="flex bg-zinc-955 p-0.5 rounded-lg border border-zinc-850">
-            <button onClick={() => setViewMode("table")} className={`p-1.5 rounded transition-all cursor-pointer ${viewMode === "table" ? "bg-zinc-900 text-emerald-400 border border-zinc-800" : "text-zinc-500"}`}><List className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded transition-all cursor-pointer ${viewMode === "grid" ? "bg-zinc-900 text-emerald-400 border border-zinc-800" : "text-zinc-500"}`}><LayoutGrid className="w-3.5 h-3.5" /></button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-full md:w-44">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-555" />
-            <Input
-              placeholder="Cari ruangan..."
-              value={roomSearch}
-              onChange={(e) => setRoomSearch(e.target.value)}
-              className="pl-9 h-9 bg-zinc-955 border-zinc-850 text-xs focus-visible:ring-0 focus-visible:border-emerald-500"
-            />
-          </div>
-
-          {isSuperAdmin && (
-            <Select value={buildingFilter} onValueChange={setBuildingFilter}>
-              <SelectTrigger className="h-9 w-40 bg-zinc-955 border-zinc-850 text-xs focus-visible:ring-0"><SelectValue placeholder="Semua Gedung" /></SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-800 text-xs">
-                <SelectItem value="all">Semua Gedung</SelectItem>
-                {buildingsList.map((b) => <SelectItem key={b.id} value={b.id}>{b.name.split(" (")[0]}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-            <SelectTrigger className="h-9 w-36 bg-zinc-955 border-zinc-850 text-xs focus-visible:ring-0">
-              <div className="flex items-center gap-1.5"><ArrowDownWideNarrow className="w-3.5 h-3.5 text-zinc-500" /><SelectValue placeholder="Urutkan" /></div>
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-xs">
-              <SelectItem value="name">Nama (A-Z)</SelectItem>
-              <SelectItem value="power">Daya Tertinggi</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilters && (
-            <Button variant="outline" onClick={handleResetFilters} className="h-9 bg-zinc-955 hover:bg-red-500/10 border-zinc-850 text-zinc-400 hover:text-red-400 text-xs px-3 gap-1.5"><RotateCcw className="w-3.5 h-3.5" /><span>Reset</span></Button>
-          )}
-        </div>
-      </div>
-
-      {/* 📦 CONTENT RENDERER WITH BUILDING GROUPS */}
-      {Object.keys(groupedRooms).length === 0 ? (
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-12 text-center flex flex-col items-center">
-          <DoorOpen className="w-12 h-12 text-zinc-750 mb-3 animate-pulse" />
-          <h4 className="text-sm font-bold text-zinc-400">Tidak ada ruangan ditemukan</h4>
-        </div>
-      ) : (
-        Object.entries(groupedRooms).map(([buildingId, roomList]) => {
-          const bName = buildingsList.find(b => b.id === buildingId)?.name || buildingId;
-          return (
-            <div key={buildingId} className="space-y-4">
-              {/* Sticky Building Header */}
-              <div className="sticky top-16 z-20 py-2 bg-background/95 backdrop-blur-sm">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="w-1.5 h-4 bg-emerald-500 rounded-full" />
-                  <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-widest flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-emerald-500/70" />
-                    {bName}
-                    <Badge variant="secondary" className="bg-zinc-800 text-[10px] ml-2 px-1.5 h-4">{roomList.length} Ruangan</Badge>
-                  </h3>
-                </div>
+        </CardHeader>
+        
+        <CardContent>
+          {filteredRooms.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center">
+              <DoorOpen className="w-12 h-12 text-zinc-800 mb-3" />
+              <h4 className="text-sm font-medium text-zinc-500">Tidak ada ruangan ditemukan</h4>
+            </div>
+          ) : (
+            <>
+              {/* DESKTOP TABLE */}
+              <div className="hidden md:block rounded-lg border border-zinc-800 overflow-hidden bg-background">
+                <Table>
+                  <TableHeader className="bg-zinc-900/80 border-b border-zinc-800">
+                    <TableRow className="border-zinc-800 hover:bg-transparent">
+                      <TableHead className="text-zinc-300 font-semibold pl-6">Ruangan</TableHead>
+                      <TableHead className="text-zinc-300 font-semibold text-center">Status</TableHead>
+                      <TableHead className="text-zinc-300 font-semibold text-center">Daya</TableHead>
+                      <TableHead className="text-zinc-300 font-semibold text-center">AI Auto</TableHead>
+                      <TableHead className="text-zinc-300 font-semibold text-center">Relay Control</TableHead>
+                      <TableHead className="text-zinc-300 font-semibold text-right pr-6">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRooms.map((room: any) => {
+                      const roomWatts = calculateRoomPower(room.name)
+                      const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
+                      const isAnyOn = roomDevices.some(d => d.isOn)
+                      return (
+                        <TableRow key={room.id} className="border-zinc-800 hover:bg-zinc-800/20 transition-colors">
+                          <TableCell className="pl-6 font-medium text-zinc-300"><div className="flex items-center gap-2.5"><DoorOpen className={`w-4 h-4 ${isAnyOn ? "text-emerald-500" : "text-zinc-600"}`} />{room.name}</div></TableCell>
+                          <TableCell className="text-center"><Badge className={isAnyOn ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-medium" : "bg-zinc-800/30 text-zinc-500 border-zinc-700/50 font-medium"}>{isAnyOn ? "Aktif" : "Padam"}</Badge></TableCell>
+                          <TableCell className="text-center font-mono text-zinc-400">{roomWatts} W</TableCell>
+                          <TableCell className="text-center"><div className="flex items-center justify-center gap-2"><Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-75 data-[state=checked]:bg-emerald-500" /></div></TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2">
+                              {(() => {
+                                const uniqueDevices = new Map();
+                                roomDevices.forEach(d => {
+                                  const typeId = d.id.toLowerCase();
+                                  const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
+                                    : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
+                                    : "pcProjector";
+                                  if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
+                                });
+                                return Array.from(uniqueDevices.values()).map(d => (
+                                  <button key={d.id} onClick={() => toggleDevice(d.id, d.isOn, false, room.name)} className={`p-1.5 rounded-md border transition-all ${d.isOn ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-zinc-950 border-zinc-800 text-zinc-500"}`}>{getDeviceIcon(d.id)}</button>
+                                ));
+                              })()}
+                            </div>
+                          </TableCell>
+                          <TableCell className="pr-6 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, false, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-zinc-500 hover:text-red-400 hover:bg-red-500/10"><Square className="w-3.5 h-3.5" /></Button>
+                              <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, true, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10"><Play className="w-3.5 h-3.5" /></Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
               </div>
 
-              {viewMode === "table" ? (
-                <div className="bg-zinc-900 border border-zinc-850 rounded-xl overflow-hidden shadow-xl">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-zinc-850 bg-zinc-955/30 text-[10px] font-bold text-zinc-455 uppercase tracking-wider">
-                          <th className="px-4 py-3">Ruangan</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Daya</th>
-                          <th className="px-4 py-3 text-center">AI Auto</th>
-                          <th className="px-4 py-3">Relay Control</th>
-                          <th className="px-4 py-3 text-right">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-zinc-850/60 text-xs">
-                        {roomList.map((room: any) => {
-                          const roomWatts = calculateRoomPower(room.name)
-                          const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
-                          const isAnyOn = roomDevices.some(d => d.isOn)
-                          return (
-                            <tr key={room.id} className="hover:bg-zinc-950/20 transition-colors">
-                              <td className="px-4 py-3 font-bold text-zinc-200"><div className="flex items-center gap-2"><DoorOpen className={`w-3.5 h-3.5 ${isAnyOn ? "text-emerald-400" : "text-zinc-600"}`} />{room.name}</div></td>
-                              <td className="px-4 py-3"><Badge className={isAnyOn ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-zinc-800/30 text-zinc-600"}>{isAnyOn ? "Aktif" : "Padam"}</Badge></td>
-                              <td className="px-4 py-3 font-mono font-bold text-zinc-400">{roomWatts} W</td>
-                              <td className="px-4 py-3"><div className="flex items-center justify-center gap-2"><Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-75 data-[state=checked]:bg-emerald-500" /></div></td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
-                                  {(() => {
-                                    const uniqueDevices = new Map();
-                                    roomDevices.forEach(d => {
-                                      const typeId = d.id.toLowerCase();
-                                      const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
-                                        : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
-                                        : "pcProjector";
-                                      if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
-                                    });
-                                    return Array.from(uniqueDevices.values()).map(d => (
-                                      <button key={d.id} onClick={() => toggleDevice(d.id, d.isOn, false, room.name)} className={`p-1.5 rounded-lg border transition-all ${d.isOn ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-zinc-955 border-zinc-850 text-zinc-650"}`}>{getDeviceIcon(d.id)}</button>
-                                    ));
-                                  })()}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex justify-end gap-1.5">
-                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, false, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-red-500/70 hover:text-red-500 hover:bg-red-500/10"><Square className="w-3 h-3" /></Button>
-                                  <Button size="sm" variant="ghost" onClick={() => setAllDevices(room.name, true, roomDevices.map(d => d.id))} className="h-7 w-7 p-0 text-emerald-500/70 hover:text-emerald-500 hover:bg-emerald-500/10"><Play className="w-3 h-3" /></Button>
-                                </div>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {roomList.map((room: any) => {
-                    const roomWatts = calculateRoomPower(room.name)
-                    const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
-                    const isAnyOn = roomDevices.some(d => d.isOn)
-                    return (
-                      <Card key={room.id} className={`bg-zinc-900 border-zinc-855 transition-all ${isAnyOn ? "border-emerald-500/20 shadow-sm" : ""}`}>
-                        <CardHeader className="p-3 pb-2 flex flex-row items-center justify-between space-y-0">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <DoorOpen className={`w-4 h-4 ${isAnyOn ? "text-emerald-400" : "text-zinc-600"}`} />
-                            <CardTitle className="text-xs font-bold truncate">{room.name}</CardTitle>
+              {/* MOBILE GRID (Accordion Style) */}
+              <div className="flex flex-col gap-2 md:hidden">
+                {filteredRooms.map((room: any) => {
+                  const roomWatts = calculateRoomPower(room.name)
+                  const roomDevices = devices.filter(d => d.location === room.name || (room.code && d.id && d.id.startsWith(room.code + '-')))
+                  const isAnyOn = roomDevices.some(d => d.isOn)
+                  const isExpanded = expandedRooms.includes(room.id)
+                  
+                  return (
+                    <Card key={room.id} className={`bg-zinc-950 border-zinc-800/60 rounded-xl flex flex-col relative overflow-hidden transition-all ${isAnyOn ? "shadow-[0_0_15px_rgba(16,185,129,0.05)] border-emerald-500/20" : ""}`}>
+                      {/* Ambient Glow */}
+                      {isAnyOn && <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent pointer-events-none" />}
+                      
+                      {/* Accordion Header */}
+                      <button 
+                        onClick={() => toggleRoomExpand(room.id)}
+                        className="relative p-3 w-full text-left transition-colors hover:bg-zinc-900/50 flex items-center gap-3"
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${isAnyOn ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-zinc-800/30 border-zinc-800 text-zinc-500"}`}>
+                          <DoorOpen className="w-4 h-4" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0 flex flex-col gap-1">
+                          <div className="flex items-start justify-between">
+                            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-1.5 leading-tight truncate">
+                              {room.name}
+                              {isAnyOn && <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_ease-in-out_infinite]" />}
+                            </h3>
+                            <div className="shrink-0 ml-2 mt-0.5">
+                              {isExpanded ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+                            </div>
                           </div>
-                          <Zap className={`w-3.5 h-3.5 ${isAnyOn ? "text-emerald-400 animate-pulse" : "text-zinc-700"}`} />
-                        </CardHeader>
-                        <CardContent className="p-3 pt-0">
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-[10px] font-mono text-zinc-500">{roomWatts} W Consumption</span>
-                            <Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-65" />
+                          
+                          <span className="text-[10px] text-zinc-400 flex items-center gap-1 font-mono">
+                            <Zap className={`w-2.5 h-2.5 ${isAnyOn ? "text-emerald-400" : "text-zinc-600"}`} />
+                            {roomWatts} W Total
+                          </span>
+                          
+                          <div className="flex items-center flex-wrap gap-2 mt-0.5">
+                            <Badge className={`text-[9px] px-1.5 py-0 rounded-sm font-medium border-0 ${isAnyOn ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-500"}`}>
+                              {isAnyOn ? "AKTIF" : "PADAM"}
+                            </Badge>
+                            
+                            {roomAutomation[room.id] !== false ? (
+                              <Badge className="text-[9px] px-1.5 py-0 rounded-sm font-medium border-0 bg-purple-500/15 text-purple-400">
+                                AUTO
+                              </Badge>
+                            ) : (
+                              <Badge className="text-[9px] px-1.5 py-0 rounded-sm font-medium border-0 bg-amber-500/15 text-amber-400">
+                                MANUAL
+                              </Badge>
+                            )}
                           </div>
-                          <div className="flex gap-1.5">
+                        </div>
+                      </button>
+
+                      {/* Accordion Content (Expanded Details) */}
+                      {isExpanded && (
+                        <div className="p-3 pt-0 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
+                          <div className="h-px w-full bg-zinc-800/50 mb-1" />
+                          
+                          {/* Top Section: Room Title & AI Toggle */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">AI Mode</span>
+                              <span className="text-[10px] font-medium text-zinc-300">{roomAutomation[room.id] !== false ? "Aktif" : "Manual"}</span>
+                            </div>
+                            <Switch checked={roomAutomation[room.id] !== false} onCheckedChange={() => toggleRoomAutomation(room.id)} className="scale-75 origin-right" />
+                          </div>
+
+                          {/* Middle Section: Device Grid */}
+                          <div className="grid grid-cols-2 gap-2 mt-1">
                             {(() => {
                               const uniqueDevices = new Map();
                               roomDevices.forEach(d => {
@@ -333,26 +428,70 @@ export function DeviceControlTab({
                                 const type = (typeId.includes("lamp") || typeId.includes("relay_1")) ? "lamp" 
                                   : (typeId.includes("ac") || typeId.includes("fan") || typeId.includes("kipas") || typeId.includes("relay_2")) ? "acFan" 
                                   : "pcProjector";
-                                if (!uniqueDevices.has(type)) uniqueDevices.set(type, d);
+                                
+                                if (!uniqueDevices.has(type)) {
+                                  let cleanTitle = "Relay";
+                                  if (type === "lamp") cleanTitle = "Lampu Kelas";
+                                  else if (type === "acFan") cleanTitle = "AC / Kipas";
+                                  else if (type === "pcProjector") cleanTitle = "Stopkontak PC";
+                                  
+                                  uniqueDevices.set(type, { ...d, cleanTitle });
+                                }
                               });
-                              return Array.from(uniqueDevices.values()).map(d => (
-                                <Button key={d.id} variant="outline" size="sm" onClick={() => toggleDevice(d.id, d.isOn, false, room.name)} className={`h-8 flex-1 gap-1 text-[10px] ${d.isOn ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400" : "bg-zinc-950 border-zinc-850 text-zinc-600"}`}>
-                                  {getDeviceIcon(d.id)}
-                                  {d.isOn ? "ON" : "OFF"}
-                                </Button>
+                              
+                              return Array.from(uniqueDevices.values()).map((d: any) => (
+                                <button
+                                  key={d.id}
+                                  onClick={() => toggleDevice(d.id, d.isOn, false, room.name)}
+                                  className={`flex flex-col justify-between p-2.5 rounded-xl border text-left transition-all ${
+                                    d.isOn 
+                                      ? "bg-emerald-500/15 border-emerald-500/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" 
+                                      : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800/80"
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-start w-full mb-3">
+                                     <div className={`p-1 rounded-md ${d.isOn ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-400"}`}>
+                                       {getDeviceIcon(d.id)}
+                                     </div>
+                                     <span className={`text-[9px] font-bold mt-0.5 ${d.isOn ? "text-emerald-500" : "text-zinc-600"}`}>
+                                       {d.isOn ? "ON" : "OFF"}
+                                     </span>
+                                  </div>
+                                  <span className={`text-[10px] leading-tight font-semibold ${d.isOn ? "text-emerald-50" : "text-zinc-400"}`}>
+                                    {d.cleanTitle}
+                                  </span>
+                                </button>
                               ));
                             })()}
                           </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })
-      )}
+                          
+                          {/* Bottom Section: Bulk Actions */}
+                          <div className="flex gap-2 pt-1 mt-1">
+                            <Button 
+                              variant="ghost" 
+                              onClick={() => setAllDevices(room.name, false, roomDevices.map(d => d.id))} 
+                              className="flex-1 h-8 text-[10px] font-semibold text-zinc-400 bg-zinc-900/80 border border-zinc-800/80 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 rounded-lg"
+                            >
+                              <Square className="w-3 h-3 mr-1" /> Matikan
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              onClick={() => setAllDevices(room.name, true, roomDevices.map(d => d.id))} 
+                              className="flex-1 h-8 text-[10px] font-semibold text-zinc-400 bg-zinc-900/80 border border-zinc-800/80 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30 rounded-lg"
+                            >
+                              <Play className="w-3 h-3 mr-1" /> Nyalakan
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

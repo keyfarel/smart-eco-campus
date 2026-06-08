@@ -52,7 +52,77 @@ export function RoomListTable({
   }
 
   return (
-    <div className="w-full overflow-hidden">
+    <>
+      {/* Mobile View (Cards) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {rooms.map((room) => (
+          <div key={`mobile-${room.buildingId}-${room.id}`} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+            {/* Main Info */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
+                <DoorOpen className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold text-zinc-150 truncate">{room.name}</span>
+                <span className="text-[10px] text-zinc-550 font-mono tracking-wider mt-0.5 uppercase truncate">
+                  {room.code ? `KODE: ${room.code}` : `ID: ${room.id}`}
+                </span>
+              </div>
+            </div>
+
+            {/* Building Info */}
+            <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2.5 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-zinc-500 shrink-0" />
+              <span className="text-[11px] font-medium text-zinc-300 truncate">{room.buildingName}</span>
+            </div>
+
+            {/* Metrics */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2 flex flex-col items-center justify-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-[10px] font-mono text-zinc-400">Lantai {room.floor}</span>
+              </div>
+              <div className="bg-zinc-950/80 rounded-lg border border-zinc-800/80 p-2 flex flex-col items-center justify-center gap-1">
+                <Users className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-[10px] font-mono text-zinc-400">{room.capacity} Orang</span>
+              </div>
+            </div>
+
+            {/* Footer: Actions */}
+            <div className="flex justify-end items-center mt-1 pt-3 border-t border-zinc-800/60">
+              <div className="flex items-center gap-1.5">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onViewRoom(room)}
+                  className="w-8 h-8 rounded-lg text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onEditRoom(room, room.buildingId)}
+                  className="w-8 h-8 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onDeleteRoom(room.id, room.buildingId)}
+                  className="w-8 h-8 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop View (Table) */}
+      <div className="hidden md:block w-full overflow-hidden rounded-lg border border-zinc-800 bg-background">
       <Table>
         <TableHeader className="bg-zinc-900/80 border-b border-zinc-800">
           <TableRow className="border-zinc-800 hover:bg-transparent">
@@ -147,7 +217,8 @@ export function RoomListTable({
           ))}
         </TableBody>
       </Table>
-    </div>
+      </div>
+    </>
   )
 }
 

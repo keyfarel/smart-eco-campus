@@ -8,7 +8,7 @@ import { useBuildings } from "@/features/building-management/hooks/use-buildings
 export const useDeviceControl = () => {
   const { data: session } = useSession();
   const userRole = session?.user?.role || "ADMIN_GEDUNG";
-  const isReadOnly = userRole === "EXECUTIVE";
+  const isReadOnly = false;
   const isSuperAdmin = userRole === "SUPER_ADMIN";
   const isBuildingAdmin = userRole === "ADMIN_GEDUNG";
   const assignedGedungId = session?.user?.assignedGedung;

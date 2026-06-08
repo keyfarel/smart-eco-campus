@@ -27,11 +27,11 @@ export function InventoryTable({
 }: InventoryTableProps) {
   return (
     <div className="space-y-4">
-      <div className="bg-zinc-900 border border-zinc-850 rounded-xl overflow-hidden shadow-2xl">
+      <div className="hidden md:block rounded-lg border border-zinc-800 overflow-hidden bg-background">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-850 bg-zinc-955/30 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+              <tr className="border-b border-zinc-800 bg-zinc-900/80 text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
                 <th className="px-6 py-4">Nama & Kode Ruang</th>
                 <th className="px-6 py-4 text-center">Lantai</th>
                 <th className="px-6 py-4">Status IoT</th>
@@ -40,7 +40,7 @@ export function InventoryTable({
                 <th className="px-6 py-4 text-right">Aksi Navigasi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-850/50">
+            <tbody className="divide-y divide-zinc-800/50">
               {rooms.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-zinc-500 text-sm">
@@ -147,6 +147,105 @@ export function InventoryTable({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {rooms.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-850 rounded-xl p-8 text-center text-zinc-500 text-sm shadow-sm">
+            Tidak ada ruangan yang ditemukan dengan filter ini.
+          </div>
+        ) : (
+          rooms.map((room) => (
+            <div key={`mobile-${room.id}`} className="bg-zinc-900 border border-zinc-850 rounded-xl p-4 flex flex-col gap-3 shadow-sm relative overflow-hidden">
+              {room.status === "online" && (
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500/20 via-emerald-500 to-emerald-500/20" />
+              )}
+              
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border shadow-inner ${
+                  room.status === "online" 
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                  : room.status === "offline"
+                  ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                  : "bg-zinc-950 border-zinc-800 text-zinc-600"
+                }`}>
+                  <DoorOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-zinc-200 leading-none mb-1">{room.name}</p>
+                  <p className="text-[10px] font-mono text-zinc-500 uppercase">{room.code}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-zinc-950/80 rounded-lg border border-zinc-850 p-3 mt-1">
+                <div className="flex flex-col gap-1">
+                  <span className="text-zinc-600 font-mono uppercase text-[9px] font-bold">Lantai</span>
+                  <div className="inline-flex items-center gap-1.5">
+                    <Layers className="w-3 h-3 text-zinc-500" />
+                    <span className="font-bold text-zinc-300 text-xs">{room.floor}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-zinc-600 font-mono uppercase text-[9px] font-bold">Kapasitas</span>
+                  <div className="inline-flex items-center gap-1.5">
+                    <Users className="w-3 h-3 text-zinc-500" />
+                    <span className="font-bold text-zinc-300 text-xs">{room.capacity} Mhs</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-zinc-600 font-mono uppercase text-[9px] font-bold">Status IoT</span>
+                  <div>
+                    {room.status === "online" ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 gap-1 px-1.5 py-0 h-4 text-[9px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Online
+                      </Badge>
+                    ) : room.status === "offline" ? (
+                      <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 gap-1 px-1.5 py-0 h-4 text-[9px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                        Offline
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-zinc-800 text-zinc-500 border-zinc-700 gap-1 px-1.5 py-0 h-4 text-[9px]">
+                        <ShieldAlert className="w-2.5 h-2.5" />
+                        Passive
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-zinc-600 font-mono uppercase text-[9px] font-bold">Telemetri</span>
+                  {room.telemetry ? (
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                      <span className={room.telemetry.watt > 0 ? "text-emerald-400 font-bold" : "text-zinc-500"}>{room.telemetry.watt}W</span>
+                      <span className={room.telemetry.occupancy > 0 ? "text-emerald-400 font-bold" : "text-zinc-500"}>{room.telemetry.occupancy} Mhs</span>
+                    </div>
+                  ) : (
+                    <span className="text-zinc-600 text-[10px] font-mono italic">Non-IoT</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-2">
+                <Link href={`/admin-gedung?room=${room.name}`} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full h-8 text-[10px] bg-zinc-950 border-zinc-850 hover:border-emerald-500/50 hover:text-emerald-400 gap-1.5">
+                    <Activity className="w-3 h-3" />
+                    Live Monitor
+                  </Button>
+                </Link>
+                {room.status !== "passive" && (
+                  <Link href={`/admin-gedung/devices?room=${room.name}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full h-8 text-[10px] bg-zinc-950 border-zinc-850 hover:border-emerald-500/50 hover:text-emerald-400 gap-1.5">
+                      <ExternalLink className="w-3 h-3" />
+                      Control
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Pagination Controls - Synchronized with User Management Style */}

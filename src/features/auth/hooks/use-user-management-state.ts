@@ -44,7 +44,7 @@ export function useUserManagementState() {
   // State Formulir Edit
   const [editName, setEditName] = useState("")
   const [editEmail, setEditEmail] = useState("")
-  const [editRole, setEditRole] = useState<"super_admin" | "admin_gedung" | "executive">("admin_gedung")
+  const [editRole, setEditRole] = useState<"super_admin" | "admin_gedung">("admin_gedung")
   const [editAssignedGedung, setEditAssignedGedung] = useState("gedung_a")
   const [editPassword, setEditPassword] = useState("")
   const [editConfirmPassword, setEditConfirmPassword] = useState("")

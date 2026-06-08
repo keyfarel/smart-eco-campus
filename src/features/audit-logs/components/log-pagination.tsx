@@ -53,30 +53,32 @@ export function LogPagination({
           <PaginationItem>
             <PaginationPrevious
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
-              className={`cursor-pointer ${currentPage === 1 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
+              className={`cursor-pointer h-7 px-2 sm:h-9 sm:px-3 text-[10px] sm:text-sm ${currentPage === 1 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
             />
           </PaginationItem>
           
-          {pages.map((page, index) => (
-            <PaginationItem key={index}>
-              {page === "..." ? (
-                <PaginationEllipsis className="text-zinc-500" />
-              ) : (
-                <PaginationLink
-                  isActive={page === currentPage}
-                  onClick={() => onPageChange(page as number)}
-                  className={`cursor-pointer w-9 h-9 ${page === currentPage ? "bg-zinc-800 text-zinc-200 border border-zinc-700" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300 border border-transparent"}`}
-                >
-                  {page}
-                </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
+          {pages.map((page, index) => {
+            return (
+              <PaginationItem key={index}>
+                {page === "..." ? (
+                  <PaginationEllipsis className="text-zinc-500 w-6 sm:w-9" />
+                ) : (
+                  <PaginationLink
+                    isActive={page === currentPage}
+                    onClick={() => onPageChange(page as number)}
+                    className={`cursor-pointer w-7 h-7 sm:w-9 sm:h-9 text-[10px] sm:text-sm ${page === currentPage ? "bg-zinc-800 text-zinc-200 border border-zinc-700" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300 border border-transparent"}`}
+                  >
+                    {page}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            );
+          })}
 
           <PaginationItem>
             <PaginationNext
               onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-              className={`cursor-pointer ${currentPage === totalPages || totalPages === 0 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
+              className={`cursor-pointer h-7 px-2 sm:h-9 sm:px-3 text-[10px] sm:text-sm ${currentPage === totalPages || totalPages === 0 ? "pointer-events-none opacity-50" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800"}`}
             />
           </PaginationItem>
         </PaginationContent>

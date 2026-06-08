@@ -1,26 +1,25 @@
 import "next-auth";
-import "next-auth/jwt";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface User {
-    role?: "SUPER_ADMIN" | "ADMIN_GEDUNG" | "EXECUTIVE";
+    role?: "SUPER_ADMIN" | "ADMIN_GEDUNG";
     assignedGedung?: string;
   }
 
   interface Session {
-    user?: {
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      role?: "SUPER_ADMIN" | "ADMIN_GEDUNG" | "EXECUTIVE";
+    user: {
+      id?: string;
+      role?: "SUPER_ADMIN" | "ADMIN_GEDUNG";
       assignedGedung?: string;
-    };
+    } & DefaultSession["user"];
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    role?: "SUPER_ADMIN" | "ADMIN_GEDUNG" | "EXECUTIVE";
+    id?: string;
+    role?: "SUPER_ADMIN" | "ADMIN_GEDUNG";
     assignedGedung?: string;
   }
 }

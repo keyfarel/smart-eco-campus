@@ -15,7 +15,7 @@ export function useUserManagement() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [role, setRole] = useState<"super_admin" | "admin_gedung" | "executive">("admin_gedung")
+  const [role, setRole] = useState<"super_admin" | "admin_gedung">("admin_gedung")
   const [assignedGedung, setAssignedGedung] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -195,7 +195,7 @@ export function useUserManagement() {
     uid: string
     name: string
     email: string
-    role: "super_admin" | "admin_gedung" | "executive"
+    role: "super_admin" | "admin_gedung"
     password?: string
     assignedGedung?: string
   }): Promise<boolean> => {

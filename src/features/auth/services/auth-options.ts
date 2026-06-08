@@ -27,11 +27,9 @@ export const authOptions: NextAuthOptions = {
 
         if (foundUser) {
           // Petakan format role database (lowercase) ke role sesi Next-Auth (UPPERCASE)
-          let mappedRole: "SUPER_ADMIN" | "ADMIN_GEDUNG" | "EXECUTIVE" = "ADMIN_GEDUNG";
+          let mappedRole: "SUPER_ADMIN" | "ADMIN_GEDUNG" = "ADMIN_GEDUNG";
           if (foundUser.role === "super_admin") {
             mappedRole = "SUPER_ADMIN";
-          } else if (foundUser.role === "executive") {
-            mappedRole = "EXECUTIVE";
           }
 
           return {

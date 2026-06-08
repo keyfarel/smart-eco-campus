@@ -25,6 +25,9 @@ inline void handleToggle() {
 
 inline void handleSaveWiFi() {
   if (server.hasArg("ssid") && server.hasArg("password")) {
+    // Hapus cache bawaan ESP32 dulu agar benar-benar ganti WiFi
+    WiFi.disconnect(true, true);
+    
     preferences.begin("wifi_creds", false);
     preferences.putString("ssid_0", server.arg("ssid"));
     preferences.putString("password_0", server.arg("password"));
@@ -38,6 +41,7 @@ inline void handleResetWiFi() {
   server.send(200, "text/html", "<html><body style='background:#0a0a0a;color:#10b981;text-align:center;padding:50px;font-family:sans-serif;'><h2>WiFi Direset! &#10004;</h2><p style='color:#a1a1aa;'>Rebooting...</p></body></html>");
   delay(2000);
   preferences.begin("wifi_creds", false); preferences.clear(); preferences.end();
+  WiFi.disconnect(true, true);
   ESP.restart();
 }
 

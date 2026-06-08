@@ -128,6 +128,9 @@ export function useSystemLogs() {
     return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   }, [rawLogs, nodesMetadata, userRole, assignedGedung, buildingFilter])
 
+  const [actionFilter, setActionFilter] = useState("all")
+  const [triggerFilter, setTriggerFilter] = useState("all")
+
   // Filter Kata Kunci & Retensi Data 30 Hari
   const filteredLogs = useMemo(() => {
     const thirtyDaysAgo = new Date()
@@ -166,9 +169,20 @@ export function useSystemLogs() {
         matchesDate = logDate >= thirtyDaysAgoFilter
       }
 
-      return matchesSearch && matchesDate
+      // Penyaringan Action
+      let matchesAction = true
+      if (actionFilter === "on") matchesAction = log.action === "Turned ON"
+      else if (actionFilter === "off") matchesAction = log.action === "Turned OFF"
+
+      // Penyaringan Trigger
+      let matchesTrigger = true
+      const isAI = log.adminName.toLowerCase().includes("ai") || log.adminName.toLowerCase().includes("system")
+      if (triggerFilter === "ai") matchesTrigger = isAI
+      else if (triggerFilter === "manual") matchesTrigger = !isAI
+
+      return matchesSearch && matchesDate && matchesAction && matchesTrigger
     })
-  }, [flattenedLogs, searchQuery, dateFilter])
+  }, [flattenedLogs, searchQuery, dateFilter, actionFilter, triggerFilter])
 
   // Perhitungan Pagination
   const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE)
@@ -182,7 +196,7 @@ export function useSystemLogs() {
   // Reset halaman saat filter pencarian, tanggal, atau gedung berubah
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, dateFilter, buildingFilter])
+  }, [searchQuery, dateFilter, buildingFilter, actionFilter, triggerFilter])
 
   // Hitung Statistik Log Berdasarkan Hasil Pemetaan
   const stats = useMemo(() => {
@@ -199,6 +213,10 @@ export function useSystemLogs() {
     setDateFilter,
     buildingFilter,
     setBuildingFilter,
+    actionFilter,
+    setActionFilter,
+    triggerFilter,
+    setTriggerFilter,
     currentPage,
     setCurrentPage,
     totalPages,

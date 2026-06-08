@@ -17,6 +17,10 @@ export function SystemLogsView() {
     setDateFilter,
     buildingFilter,
     setBuildingFilter,
+    actionFilter,
+    setActionFilter,
+    triggerFilter,
+    setTriggerFilter,
     currentPage,
     setCurrentPage,
     totalPages,
@@ -29,21 +33,37 @@ export function SystemLogsView() {
 
   const isSuperAdmin = userRole === "SUPER_ADMIN"
 
+  const handleResetFilters = () => {
+    setSearchQuery("")
+    setDateFilter("all")
+    setActionFilter("all")
+    setTriggerFilter("all")
+    if (isSuperAdmin) {
+      setBuildingFilter("all")
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header Dinamis Berbasis Peran (Kepatuhan PRD & SDD) */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <FileText className="w-5 h-5 text-emerald-500" />
+        <div className="w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <FileText className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">
             {isSuperAdmin ? "System Audit Logs" : "Activity Logs"}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {isSuperAdmin
-              ? "Automation history and global campus-wide activity records (Last 30 days)"
-              : `Device activity records for ${assignedGedungName} (Last 30 days)`}
+          <p className="text-[11px] md:text-sm text-muted-foreground truncate md:whitespace-normal">
+            <span className="hidden md:inline">
+              {isSuperAdmin
+                ? "Automation history and global campus-wide activity records "
+                : `Device activity records for ${assignedGedungName} `}
+            </span>
+            <span className="md:hidden">
+              {isSuperAdmin ? "Global records " : `${assignedGedungName} records `}
+            </span>
+            (Last 30 days)
           </p>
         </div>
       </div>
@@ -53,18 +73,20 @@ export function SystemLogsView() {
 
       {/* Logs Table Card */}
       <Card className="bg-background border-zinc-800">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold text-zinc-200">
-            {isSuperAdmin ? "Global Activity Records" : "Local Activity Records"}
-          </CardTitle>
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-end gap-4 md:gap-0 pb-4 md:pb-2">
           <LogFilters
             query={searchQuery}
             onQueryChange={setSearchQuery}
             filter={dateFilter}
             onFilterChange={setDateFilter}
+            actionFilter={actionFilter}
+            onActionFilterChange={setActionFilter}
+            triggerFilter={triggerFilter}
+            onTriggerFilterChange={setTriggerFilter}
             userRole={userRole}
             buildingFilter={buildingFilter}
             onBuildingFilterChange={setBuildingFilter}
+            onResetFilters={handleResetFilters}
           />
         </CardHeader>
 

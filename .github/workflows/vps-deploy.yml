@@ -1,4 +1,4 @@
-name: VPS Deployment (Next.js)
+name: VPS Deployment (GitHub Cloud Build)
 
 on:
   push:
@@ -9,22 +9,59 @@ on:
       - 'public/**'
       - 'package.json'
       - 'next.config.mjs'
+      - '.github/workflows/vps-deploy.yml'
 
 jobs:
-  deploy-to-vps:
-    name: Sync and Build on VPS
-    runs-on: [self-hosted, vps]
+  build-and-deploy:
+    name: Build on GitHub & Deploy to VPS
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install
 
-      - name: Build Next.js Application
-        run: npm run build
-
-      - name: Restart PM2 Service
+      - name: Inject Environment Variables
         run: |
-          pm2 restart smart-eco-campus || pm2 start npm --name "smart-eco-campus" -- start
-          pm2 save
+          cat << 'EOF' > .env.production
+          ${{ secrets.ENV_FILE }}
+          EOF
+
+      - name: Build Next.js
+        run: pnpm run build
+
+      - name: Prepare Standalone Folders
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: ".next/standalone/*"
+          target: "/home/ubuntu/smart-eco-campus"
+          strip_components: 2
+
+      - name: Restart Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/smart-eco-campus
+            npm install -g pm2
+            pm2 restart smart-eco-campus || pm2 start server.js --name "smart-eco-campus"
+            pm2 save

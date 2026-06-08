@@ -80,10 +80,13 @@ inline void handlePhysicalButtons() {
         Serial.println(
             "[RESET] Tombol Ditahan >5 Detik! Menghapus WiFi & Rebooting...");
 
-        // Hapus credential WiFi dari NVS
+        // Hapus credential WiFi dari NVS aplikasi
         preferences.begin("wifi_creds", false);
         preferences.clear();
         preferences.end();
+
+        // Hapus cache WiFi bawaan ESP32 agar tidak stuck di SSID lama
+        WiFi.disconnect(true, true);
 
         delay(1000);   // Beri jeda sejenak sebelum restart
         ESP.restart(); // Restart Node

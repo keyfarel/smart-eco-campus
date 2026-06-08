@@ -72,7 +72,7 @@ export function UsageDistributionChart({ chartVariants, isEmpty }: UsageDistribu
     return () => clearInterval(interval)
   }, [])
   return (
-    <motion.div variants={chartVariants}>
+    <motion.div variants={chartVariants} className="h-full">
       <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">

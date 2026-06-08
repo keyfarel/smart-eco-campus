@@ -6,7 +6,14 @@ import { UserListCard } from "../components/user-management/user-list-card"
 import { UserMetrics } from "../components/user-management/user-metrics"
 import { UserDetailDialog } from "../components/user-management/user-detail-dialog"
 import { EditUserDialog } from "../components/user-management/edit-user-dialog"
+import { RegisterUserForm } from "../components/user-management/register-user-form"
 import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function UserManagementView() {
   const state = useUserManagementState()
@@ -14,12 +21,33 @@ export function UserManagementView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <UserManagementHeader
-        isDialogOpen={state.isDialogOpen}
-        setIsDialogOpen={state.setIsDialogOpen}
-        state={state}
-        buildingsList={buildingsList}
-      />
+      <UserManagementHeader onAddUser={() => state.setIsDialogOpen(true)} />
+
+      <Dialog open={state.isDialogOpen} onOpenChange={state.setIsDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-foreground max-w-md p-0 overflow-hidden">
+          <DialogTitle className="sr-only">Register New User</DialogTitle>
+          <DialogDescription className="sr-only">
+            Create a new role-restricted user credential.
+          </DialogDescription>
+          <RegisterUserForm
+            name={state.name}
+            onNameChange={state.setName}
+            email={state.email}
+            onEmailChange={state.setEmail}
+            password={state.password}
+            onPasswordChange={state.setPassword}
+            confirmPassword={state.confirmPassword}
+            onConfirmPasswordChange={state.setConfirmPassword}
+            role={state.role}
+            onRoleChange={state.setRole}
+            assignedGedung={state.assignedGedung}
+            onAssignedGedungChange={state.setAssignedGedung}
+            isSubmitting={state.isSubmitting}
+            onSubmit={state.handleFormSubmit}
+            buildingsList={buildingsList}
+          />
+        </DialogContent>
+      </Dialog>
 
       <UserMetrics usersList={state.usersList} />
 
@@ -40,6 +68,7 @@ export function UserManagementView() {
           totalItems={state.totalItems}
           startIndex={state.startIndex}
           endIndex={state.endIndex}
+          onAddNewUser={() => state.setIsDialogOpen(true)}
         />
       </div>
 

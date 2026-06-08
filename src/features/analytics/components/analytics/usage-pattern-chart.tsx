@@ -14,7 +14,7 @@ interface UsagePatternChartProps {
 
 export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = false }: UsagePatternChartProps) {
   return (
-    <motion.div className="lg:col-span-2" variants={chartVariants}>
+    <motion.div variants={chartVariants}>
       <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden backdrop-blur-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
@@ -31,7 +31,7 @@ export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = f
             {isLiveMode ? "Real-time monitoring of campus power consumption" : "Visualizing power load variations across the campus"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="h-[350px] relative p-0 pt-4">
+        <CardContent className="h-[250px] sm:h-[350px] relative p-0 pt-4">
           <AnimatePresence mode="wait">
             {isEmpty ? (
               <motion.div 
@@ -69,6 +69,7 @@ export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = f
                       tickLine={false}
                       axisLine={false}
                       tick={{ fill: '#6b7280' }}
+                      minTickGap={30}
                     />
                     <YAxis
                       stroke="#4b5563"

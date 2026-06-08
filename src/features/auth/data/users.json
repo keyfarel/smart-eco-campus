@@ -1,27 +1,19 @@
 [
   {
-    "email": "executive@ecocampus.id",
-    "name": "Prof Rektor",
-    "role": "executive",
-    "uid": "uid_executive_1",
-    "password": "executive123",
-    "created_at": 1779010000
-  },
-  {
     "name": "Budi Teknisi",
     "role": "admin_gedung",
     "email": "admingedung@ecocampus.id",
-    "assigned_gedung": "bld_sipil_001",
+    "uid": "uid_admin_1",
     "password": "admingedung123",
-    "created_at": 1779005000,
-    "uid": "uid_admin_1"
+    "assigned_gedung": "bld_sipil_001",
+    "created_at": 1779005000
   },
   {
-    "role": "super_admin",
-    "name": "Alfan SuperAdmin",
-    "email": "superadmin@ecocampus.id",
+    "name": "SuperAdmin",
     "uid": "uid_superadmin_1",
     "password": "superadmin123",
+    "role": "super_admin",
+    "email": "superadmin@ecocampus.id",
     "created_at": 1779000000
   }
 ]

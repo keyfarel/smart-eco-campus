@@ -50,8 +50,6 @@ export function useLogin() {
       
       if (role === "SUPER_ADMIN") {
         router.push("/super-admin")
-      } else if (role === "EXECUTIVE") {
-        router.push("/executive")
       } else {
         router.push("/admin-gedung")
       }

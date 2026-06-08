@@ -1,12 +1,9 @@
 "use client";
 
 import { AlertTriangle, Building2 } from "lucide-react";
-import { AddBuildingDialog } from "../building/add-building-dialog";
-import { EditBuildingDialog } from "../building/edit-building-dialog";
-import { AddRoomDialog } from "../room/add-room-dialog";
-import { EditRoomDialog } from "../room/edit-room-dialog";
-import { RoomDetailDialog } from "../room/room-detail-dialog";
-import { BuildingDetailDialog } from "../building/building-detail-dialog";
+import { AddBuildingDialog } from "./add-building-dialog";
+import { EditBuildingDialog } from "./edit-building-dialog";
+import { BuildingDetailDialog } from "./building-detail-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,13 +14,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useBuildingManagementState } from "@/features/building-management/hooks/use-building-management-state";
+import { useBuildingManagement } from "../../hooks/use-building-management";
 
-interface ManagementDialogsProps {
-  state: ReturnType<typeof useBuildingManagementState>;
+interface BuildingDialogsProps {
+  state: ReturnType<typeof useBuildingManagement>;
 }
 
-export function ManagementDialogs({ state }: ManagementDialogsProps) {
+export function BuildingDialogs({ state }: BuildingDialogsProps) {
   return (
     <>
       <AddBuildingDialog
@@ -37,7 +34,7 @@ export function ManagementDialogs({ state }: ManagementDialogsProps) {
         setFloorsCount={state.setFloorsCount}
         isSubmitting={state.isSubmitting}
         isFormValid={!!state.isFormValid}
-        showNameError={false} // Simplification for brief update
+        showNameError={false}
         showNameSuccess={false}
         showFloorsError={false}
         showFloorsSuccess={false}
@@ -70,72 +67,9 @@ export function ManagementDialogs({ state }: ManagementDialogsProps) {
         serverError={state.serverError}
       />
 
-      <AddRoomDialog
-        isOpen={state.isAddRoomOpen}
-        setIsOpen={state.setIsAddRoomOpen}
-        isAddingFromHeader={state.isAddingFromHeader}
-        viewedBuilding={state.viewedBuilding}
-        buildingsList={state.buildingsList}
-        roomFormBuildingId={state.roomFormBuildingId}
-        setRoomFormBuildingId={state.setRoomFormBuildingId}
-        newRoomFloor={state.newRoomFloor}
-        setNewRoomFloor={state.setNewRoomFloor}
-        newRoomCode={state.newRoomCode}
-        setNewRoomCode={state.setNewRoomCode}
-        newRoomName={state.newRoomName}
-        setNewRoomName={state.setNewRoomName}
-        newRoomCapacity={state.newRoomCapacity}
-        setNewRoomCapacity={state.setNewRoomCapacity}
-        isAddingRoom={state.isAddingRoom}
-        formMaxFloors={state.formMaxFloors}
-        isRoomFormValid={state.isRoomFormValid}
-        showRoomCodeError={false}
-        showRoomCodeSuccess={false}
-        showRoomNameError={false}
-        showRoomNameSuccess={false}
-        showRoomCapacityError={false}
-        showRoomCapacitySuccess={false}
-        onSubmit={state.handleAddRoomSubmit}
-      />
-
-      <EditRoomDialog
-        isOpen={state.isEditRoomOpen}
-        setIsOpen={state.setIsEditRoomOpen}
-        viewedBuilding={state.viewedBuilding}
-        roomContextBuilding={state.roomContextBuilding}
-        editingRoom={state.editingRoom}
-        editRoomFloor={state.editRoomFloor}
-        setEditRoomFloor={state.setEditRoomFloor}
-        editRoomCode={state.editRoomCode}
-        setEditRoomCode={state.setEditRoomCode}
-        editRoomName={state.editRoomName}
-        setEditRoomName={state.setEditRoomName}
-        editRoomCapacity={state.editRoomCapacity}
-        setEditRoomCapacity={state.setEditRoomCapacity}
-        isSubmitting={state.isEditingRoom}
-        formMaxFloors={state.formMaxFloors}
-        isFormValid={state.isEditRoomFormValid}
-        showRoomCodeError={false}
-        showRoomCodeSuccess={false}
-        showRoomNameError={false}
-        showRoomNameSuccess={false}
-        showRoomCapacityError={false}
-        showRoomCapacitySuccess={false}
-        onSubmit={state.handleEditRoomSubmit}
-        serverError={state.serverError}
-      />
-
-      <RoomDetailDialog 
-        room={state.viewedRoom} 
-        onClose={() => state.setViewedRoom(null)} 
-      />
-
       <BuildingDetailDialog
         viewedBuilding={state.viewedBuilding}
         setViewedBuilding={state.setViewedBuilding}
-        onOpenAddRoom={state.handleOpenAddRoomFromBlueprint}
-        onEditRoom={state.handleTriggerEditRoom}
-        onDeleteRoom={state.handleDeleteRoom}
         onClose={() => {
           state.setViewedBuilding(null);
         }}
@@ -217,4 +151,3 @@ export function ManagementDialogs({ state }: ManagementDialogsProps) {
     </>
   );
 }
-

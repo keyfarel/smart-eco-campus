@@ -10,8 +10,6 @@ interface MonitoringGridSectionProps {
   systemStatus: any;
   activeRoom: string;
   activeRoomId: string;
-  isPatrolling: boolean;
-  patrolCountdown: number;
   floorName: string;
   activeRoomData: any;
   activeDevices: any[];
@@ -25,8 +23,6 @@ export function MonitoringGridSection({
   systemStatus,
   activeRoom,
   activeRoomId,
-  isPatrolling,
-  patrolCountdown,
   floorName,
   activeRoomData,
   activeDevices,
@@ -39,8 +35,6 @@ export function MonitoringGridSection({
         <LiveCameraFeed
           status={systemStatus.iotSensors}
           roomName={activeRoom}
-          isPatrolling={isPatrolling}
-          patrolCountdown={patrolCountdown}
           floorName={floorName}
           wattLoad={activeRoomData?.watt}
           occupancy={activeRoomData?.occupancy}

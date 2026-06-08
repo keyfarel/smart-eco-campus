@@ -15,6 +15,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -32,12 +33,14 @@ import {
   ChevronRight,
   LayoutGrid,
   DoorOpen,
+  Cpu,
 } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useBuildings } from "@/features/building-management/hooks/use-buildings";
+import { useDeviceRegistration } from "@/features/iot-control/hooks/use-device-registration";
 
 // Struktur antarmuka menu untuk fleksibilitas modular
 interface SubMenuItem {
@@ -56,7 +59,11 @@ export function DashboardSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { buildingsList } = useBuildings();
+  const { unregisteredList } = useDeviceRegistration();
+  const { isMobile, setOpenMobile } = useSidebar();
   
+  const pendingCount = unregisteredList.length;
+
   // Ambil role aktif pengguna (kepatuhan RBAC)
   const userRole = session?.user?.role || "ADMIN_GEDUNG";
 
@@ -72,14 +79,17 @@ export function DashboardSidebar() {
       {
         title: "Dashboard Utama",
         icon: LayoutDashboard,
-        href: "/super-admin"
+        items: [
+          { title: "Dashboard Gedung", href: "/super-admin" },
+          { title: "Dashboard Analitik", href: "/super-admin/macro" },
+        ]
       },
       {
         title: "Manajemen Sistem",
         icon: Building2,
         items: [
-          { title: "Building Management", href: "/super-admin/buildings" },
-          { title: "Manajemen Perangkat IoT", href: "/super-admin/devices" },
+          { title: "Manajemen Gedung", href: "/super-admin/buildings" },
+          { title: "Manajemen Ruangan", href: "/super-admin/rooms" },
           { title: "User Management", href: "/super-admin/users" },
         ]
       },
@@ -89,17 +99,13 @@ export function DashboardSidebar() {
         href: "/super-admin/logs"
       }
     );
-  } else if (userRole === "EXECUTIVE") {
-    navItems.push(
-      { title: "Macro Dashboard", icon: LayoutDashboard, href: "/executive" },
-      { title: "Financial Analytics", icon: BarChart3, href: "/executive/analytics" }
-    );
   } else {
     // ADMIN_GEDUNG
     navItems.push(
       { title: "Live Dashboard", icon: LayoutDashboard, href: "/admin-gedung" },
       { title: "Daftar Ruangan", icon: DoorOpen, href: "/admin-gedung/inventory" },
-      { title: "Perangkat IoT", icon: Power, href: "/admin-gedung/devices" },
+      { title: "Kendali Perangkat", icon: Power, href: "/admin-gedung/devices" },
+      { title: "Manajemen Perangkat", icon: Cpu, href: "/admin-gedung/registration" },
       { title: "Activity Logs", icon: FileText, href: "/admin-gedung/logs" }
     );
   }
@@ -109,22 +115,27 @@ export function DashboardSidebar() {
     switch (userRole) {
       case "SUPER_ADMIN":
         return "Sistem Kampus";
-      case "EXECUTIVE":
-        return "Monitoring Eksekutif";
       default:
         return "Operasional Gedung";
     }
   };
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
+    await signOut({ redirect: false });
+    window.location.href = "/login";
+  };
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
     <Sidebar className="border-r border-zinc-800/50">
       {/* HEADER */}
       <SidebarHeader className="border-b border-zinc-800/50 px-4 py-4">
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group" onClick={handleLinkClick}>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors duration-300">
             <Leaf className="w-5 h-5 text-emerald-500" />
           </div>
@@ -188,8 +199,13 @@ export function DashboardSidebar() {
                                     isActive={isSubActive}
                                     className="h-8 text-xs font-normal text-zinc-400 hover:text-zinc-200 data-[active=true]:text-emerald-500 data-[active=true]:bg-emerald-500/10 data-[active=true]:font-medium transition-colors"
                                   >
-                                    <Link href={subItem.href}>
+                                    <Link href={subItem.href} onClick={handleLinkClick} className="flex items-center justify-between w-full">
                                       <span>{subItem.title}</span>
+                                      {subItem.title === "Manajemen Perangkat" && pendingCount > 0 && (
+                                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm animate-[pulse_2s_infinite]">
+                                          {pendingCount}
+                                        </span>
+                                      )}
                                     </Link>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -210,9 +226,16 @@ export function DashboardSidebar() {
                       isActive={isRootActive}
                       className="h-10 px-3 data-[active=true]:bg-emerald-500/10 data-[active=true]:text-emerald-500 data-[active=true]:border-emerald-500/30 hover:bg-zinc-800/50 transition-colors"
                     >
-                      <Link href={item.href || "#"}>
-                        <item.icon className="w-4 h-4 shrink-0" />
-                        <span className="font-medium text-sm">{item.title}</span>
+                      <Link href={item.href || "#"} onClick={handleLinkClick} className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <item.icon className="w-4 h-4 shrink-0" />
+                          <span className="font-medium text-sm">{item.title}</span>
+                        </div>
+                        {item.title === "Manajemen Perangkat" && pendingCount > 0 && (
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-[pulse_2s_infinite]">
+                            {pendingCount}
+                          </span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

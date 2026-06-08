@@ -17,10 +17,15 @@ export function useExecutiveMetrics() {
     liveLoad: 0,
     energySaved: 0,
     financialSaved: 0,
+    totalDurationSec: 0,
+    totalAiActions: 0,
     co2Prevented: 0,
     sparkLeaderboard: [] as SparkLeaderboardItem[],
     totalRooms: 1,
     automatedRooms: 0,
+    activeDatanodes: 0,
+    activeNodes: 0,
+    managedRelays: 0,
     sparkStatus: {
       step: 0,
       total_steps: 5,
@@ -59,12 +64,18 @@ export function useExecutiveMetrics() {
         const data = snapshot.val()
         let totalRupiah = 0
         let totalKwh = 0
+        let totalDuration = 0
+        let totalActions = 0
         const leaderboard: SparkLeaderboardItem[] = []
 
         Object.keys(data).forEach((key) => {
           const room = data[key]
           totalRupiah += room.total_rupiah_saved || 0
           totalKwh += room.total_kwh_saved || 0
+          // fallback to both possible key names
+          const roomDurationSec = room.total_duration_sec ?? (room.total_durasi_kosong_jam ? room.total_durasi_kosong_jam * 3600 : 0)
+          totalDuration += roomDurationSec
+          totalActions += room.total_ai_action ?? room.total_ai_actions ?? 0
           
           leaderboard.push({
             id: key,
@@ -81,6 +92,8 @@ export function useExecutiveMetrics() {
           ...m,
           energySaved: parseFloat(totalKwh.toFixed(2)),
           financialSaved: Math.round(totalRupiah),
+          totalDurationSec: totalDuration,
+          totalAiActions: totalActions,
           co2Prevented: parseFloat((totalKwh * 0.00087).toFixed(4)),
           sparkLeaderboard: leaderboard,
         }))
@@ -127,11 +140,61 @@ export function useExecutiveMetrics() {
       }
     })
 
+    // 5. Listen to Big Data Cluster Status
+    const clusterRef = ref(rtdb, "analytics/cluster_status")
+    const unsubscribeCluster = onValue(clusterRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val()
+        setMetrics(m => ({
+          ...m,
+          activeDatanodes: data.active_datanodes || 0
+        }))
+      }
+    })
+
+    // 6. Listen to IoT Edge Fleet Status
+    const nodesRef = ref(rtdb, "nodes")
+    const unsubscribeNodes = onValue(nodesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val()
+        let activeNodes = 0
+        let managedRelays = 0
+        const now = Date.now() / 1000 // current time in seconds
+
+        Object.keys(data).forEach(nodeId => {
+          const node = data[nodeId]
+          // Simple check if node is active (seen in last 5 minutes)
+          const lastSeen = node.telemetry?.last_seen_timestamp || 0
+          if (now - lastSeen < 300) {
+            activeNodes++
+          } else if (node.is_registered) {
+            activeNodes++ // Count as active if it's explicitly registered in our fleet
+          }
+
+          if (node.relays) {
+            Object.keys(node.relays).forEach(rKey => {
+              if (rKey.includes('lampu') || rKey.includes('kipas') || rKey.includes('ac')) {
+                managedRelays++
+              }
+            })
+          }
+        })
+
+        setMetrics(m => ({
+          ...m,
+          activeNodes,
+          managedRelays
+        }))
+      }
+    })
+
     return () => {
       clearInterval(interval)
       unsubscribeAnalytics()
       unsubscribeAuto()
       unsubscribeProgress()
+      unsubscribeCluster()
+      unsubscribeNodes()
     }
   }, [])
 

@@ -28,8 +28,8 @@ interface EditUserDialogProps {
   setEditName: (val: string) => void
   editEmail: string
   setEditEmail: (val: string) => void
-  editRole: "super_admin" | "admin_gedung" | "executive"
-  setEditRole: (val: "super_admin" | "admin_gedung" | "executive") => void
+  editRole: "super_admin" | "admin_gedung"
+  setEditRole: (val: "super_admin" | "admin_gedung") => void
   editAssignedGedung: string
   setEditAssignedGedung: (val: string) => void
   editPassword: string
@@ -151,9 +151,8 @@ export function EditUserDialog({
                     <SelectValue placeholder="Pilih Peran..." />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-800 text-xs text-zinc-300">
-                    <SelectItem value="super_admin">Super Admin (Clearance Lvl 3)</SelectItem>
-                    <SelectItem value="admin_gedung">Building Admin (Clearance Lvl 2)</SelectItem>
-                    <SelectItem value="executive">Executive Analyst (Clearance Lvl 1)</SelectItem>
+                    <SelectItem value="super_admin">Super Admin (System Infrastructure)</SelectItem>
+                    <SelectItem value="admin_gedung">Building Admin (Field Operations)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
