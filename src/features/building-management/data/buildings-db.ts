@@ -7,55 +7,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from "firebas
 const dbPath = path.join(process.cwd(), "src/features/building-management/data/buildings.json")
 
 // Inisialisasi data bawaan dengan Standar Technical UID (Building & Room)
-const DEFAULT_BUILDINGS: Building[] = [
-  {
-    id: "bld_sipil_001",
-    code: "GS",
-    name: "Gedung Sipil",
-    floorsCount: 8,
-    roomsCount: 32,
-    activeDevicesCount: 96,
-    createdAt: 1779005000,
-    rooms: [
-      // Lantai 5
-      { id: "bld_sipil_001_f5_rt1", code: "RT 1", name: "R. Kelas Teori 1", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt2", code: "RT 2", name: "R. Kelas Teori 2", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt3", code: "RT 3", name: "R. Kelas Teori 3", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt4", code: "RT 4", name: "R. Kelas Teori 4", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt5", code: "RT 5", name: "R. Kelas Teori 5", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt6", code: "RT 6", name: "R. Kelas Teori 6", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_rt7", code: "RT 7", name: "R. Kelas Teori 7", floor: 5, capacity: 40 },
-      { id: "bld_sipil_001_f5_lpy1", code: "LPY 1", name: "Lab. Proyek 1", floor: 5, capacity: 40 },
-      // Lantai 6
-      { id: "bld_sipil_001_f6_lsi1", code: "LSI 1", name: "Lab. Sistem Informasi 1", floor: 6, capacity: 40 },
-      { id: "bld_sipil_001_f6_lsi2", code: "LSI 2", name: "Lab. Sistem Informasi 2", floor: 6, capacity: 40 },
-      { id: "bld_sipil_001_f6_lsi3", code: "LSI 3", name: "Lab. Sistem Informasi 3", floor: 6, capacity: 40 },
-      { id: "bld_sipil_001_f6_lpy2", code: "LPY 2", name: "Lab. Proyek 2", floor: 6, capacity: 40 },
-      { id: "bld_sipil_001_f6_lpy3", code: "LPY 3", name: "Lab. Proyek 3", floor: 6, capacity: 40 },
-      // Lantai 7
-      { id: "bld_sipil_001_f7_lpr1", code: "LPR 1", name: "Lab. Pemrograman 1", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr2", code: "LPR 2", name: "Lab. Pemrograman 2", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr3", code: "LPR 3", name: "Lab. Pemrograman 3", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr4", code: "LPR 4", name: "Lab. Pemrograman 4", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr5", code: "LPR 5", name: "Lab. Pemrograman 5", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr6", code: "LPR 6", name: "Lab. Pemrograman 6", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr7", code: "LPR 7", name: "Lab. Pemrograman 7", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpr8", code: "LPR 8", name: "Lab. Pemrograman 8", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lkj2", code: "LKJ 2", name: "Lab. Komputasi Jaringan 2", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lkj1", code: "LKJ 1", name: "Lab. Komputasi Jaringan 1", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lkj3", code: "LKJ 3", name: "Lab. Komputasi Jaringan 3", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lvk1", code: "LVK 1*", name: "Lab. Visual Komputer 1", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_rt8", code: "RT 8", name: "R. Kelas Teori 8", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lvk2", code: "LVK 2*", name: "Lab. Visual Komputer 2", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lpy4", code: "LPY 4", name: "Lab. Proyek 4", floor: 7, capacity: 40 },
-      { id: "bld_sipil_001_f7_lai1", code: "LAI 1", name: "Lab. Kecerdasan Buatan 1", floor: 7, capacity: 40 },
-      // Lantai 8
-      { id: "bld_sipil_001_f8_rt", code: "RT", name: "R. Kelas Teori", floor: 8, capacity: 40 },
-      { id: "bld_sipil_001_f8_rt9", code: "RT 9", name: "R. Kelas Teori 9", floor: 8, capacity: 40 },
-      { id: "bld_sipil_001_f8_rt10", code: "RT 10", name: "R. Kelas Teori 10", floor: 8, capacity: 40 },
-    ],
-  },
-]
+const DEFAULT_BUILDINGS: Building[] = []
 
 export function getBuildings(): Building[] {
   try {
@@ -157,14 +109,7 @@ export async function getBuildingsAsync(): Promise<Building[]> {
           }
         })
 
-        // 🚨 FORCED SYNC LOGIC: Jika ID baru belum ada di Firestore, paksa timpa dengan data lokal
-        const hasNewId = list.some(b => b.id === "bld_sipil_001")
-        if (!hasNewId) {
-          console.log("[buildings-db] Technical UID missing in Firestore. Triggering forced sync...")
-          const localBuildings = getBuildings()
-          await saveBuildingsAsync(localBuildings)
-          return localBuildings
-        }
+        // Tidak lagi memaksa sinkronisasi dengan data dummy
 
         // Urutkan berdasarkan tanggal pembuatan (terbaru di atas)
         return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
