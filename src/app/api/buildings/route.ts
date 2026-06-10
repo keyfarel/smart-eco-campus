@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getBuildingsAsync, saveBuildingsAsync } from "@/features/building-management/data/buildings-db"
 import { Building } from "@/features/building-management/types/building"
 
+export const dynamic = "force-dynamic"
+
 // GET /api/buildings - Mendapatkan seluruh master data gedung
 export async function GET() {
   const buildings = await getBuildingsAsync()

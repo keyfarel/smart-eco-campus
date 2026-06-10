@@ -1,4 +1,4 @@
-import { SuperAdminView } from "@/features/auth"
+import { SuperAdminView } from "@/features/dashboard"
 import { getAnalyticsData } from "@/features/analytics/services/analytics-service"
 
 interface PageProps {
@@ -14,7 +14,7 @@ export default async function SuperAdminPage({ searchParams }: PageProps) {
   const { rawLogs, mainData, stats } = await getAnalyticsData(timeRange)
 
   return (
-    <SuperAdminView 
+    <SuperAdminView
       timeRange={timeRange}
       rawLogs={rawLogs}
       mainData={mainData}
