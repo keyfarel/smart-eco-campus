@@ -4,4 +4,5 @@
  */
 
 export { default as DashboardView } from "./views/dashboard-view";
+export { SuperAdminView } from "./views/super-admin-view";
 // Export other public components/hooks/constants here as needed

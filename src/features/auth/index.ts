@@ -1,7 +1,6 @@
 // Public API Gateway
 // Export components, hooks, services from here
 export { UserManagementView } from "./views/user-management-view"
-export { SuperAdminView } from "./views/super-admin-view"
 export type { UserRecord } from "./types/user"
 export { useUserManagement } from "./hooks/use-user-management"
 export { useAccountSettings } from "./hooks/use-account-settings"
