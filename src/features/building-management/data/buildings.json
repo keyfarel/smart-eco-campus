@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "id": "gedung_ejbzsfq96",
+    "code": "GOR",
+    "name": "Gedung Olahraga",
+    "floorsCount": 4,
+    "roomsCount": 0,
+    "activeDevicesCount": 0,
+    "createdAt": 1781084932,
+    "rooms": []
+  },
+  {
+    "id": "gedung_qh1vywo23",
+    "code": "LKJ1",
+    "name": "Gedung Lama",
+    "floorsCount": 10,
+    "roomsCount": 0,
+    "activeDevicesCount": 0,
+    "createdAt": 1781084288,
+    "rooms": []
+  },
+  {
+    "id": "gedung_f55hmujvr",
+    "code": "LPY",
+    "name": "Gedung Baru",
+    "floorsCount": 4,
+    "roomsCount": 1,
+    "activeDevicesCount": 0,
+    "createdAt": 1781084260,
+    "rooms": [
+      {
+        "id": "LPR 1",
+        "code": "LPR 1",
+        "name": "Lab. Pemrograman 1",
+        "floor": 1,
+        "capacity": 30
+      }
+    ]
+  },
+  {
+    "activeDevicesCount": 3,
+    "createdAt": 1779005000,
+    "roomsCount": 2,
+    "id": "bld_sipil_001",
+    "name": "Gedung Sipil",
+    "floorsCount": 8,
+    "code": "GS",
+    "rooms": [
+      {
+        "code": "LPR 1",
+        "floor": 7,
+        "id": "bld_sipil_001_f7_lpr1",
+        "name": "Lab. Pemrograman 1",
+        "capacity": 40
+      },
+      {
+        "id": "R-2",
+        "code": "R-2",
+        "name": "Ruang 2",
+        "floor": 7,
+        "capacity": 30
+      }
+    ]
+  }
+]

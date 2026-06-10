@@ -35,7 +35,7 @@ export function BuildingMetrics({ buildingsList }: BuildingMetricsProps) {
           <div className="flex flex-col items-center sm:items-start">
             <span className="text-xs text-zinc-400 font-semibold tracking-wide hidden sm:block mb-0.5">Total Rooms</span>
             <p className="text-lg sm:text-2xl font-extrabold font-mono text-zinc-100 leading-none">
-              {buildingsList.reduce((acc, b) => acc + (b.rooms?.length || b.floorsCount * 4), 0)}
+              {buildingsList.reduce((acc, b) => acc + (b.roomsCount ?? (b.floorsCount * 4)), 0)}
             </p>
             <p className="text-[9px] text-blue-400 uppercase font-semibold block sm:hidden mt-1">Rooms</p>
             <p className="text-[10px] text-zinc-500 hidden sm:block mt-1">Active physical classrooms</p>

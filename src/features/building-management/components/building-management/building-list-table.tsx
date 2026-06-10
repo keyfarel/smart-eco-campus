@@ -59,7 +59,7 @@ export function BuildingListTable({
       {/* Mobile View (Cards) */}
       <div className="flex flex-col gap-3 md:hidden">
         {buildingsList.map((building) => {
-          const roomsCount = building.roomsCount || building.floorsCount * 4
+          const roomsCount = building.roomsCount ?? (building.floorsCount * 4)
           const hasDevices = building.activeDevicesCount > 0
 
           return (
@@ -158,7 +158,7 @@ export function BuildingListTable({
         </TableHeader>
         <TableBody>
           {buildingsList.map((building) => {
-            const roomsCount = building.roomsCount || building.floorsCount * 4
+            const roomsCount = building.roomsCount ?? (building.floorsCount * 4)
             const hasDevices = building.activeDevicesCount > 0
 
             return (
