@@ -166,31 +166,24 @@ export function GlobalAICamera() {
     if (count !== lastCount) {
       isUpdatingRef.current = true;
       try {
-        await update(ref(rtdb, `nodes/${NODE_ID}/ai_vision`), {
-          person_count: count,
-          grace_period_active: count === 0
-        });
+        const updates: any = {};
+        updates[`nodes/${NODE_ID}/ai_vision/person_count`] = count;
+        updates[`nodes/${NODE_ID}/ai_vision/grace_period_active`] = count === 0;
+
+        let shouldPushLog = false;
 
         // Turn ON logic
-        if (lastCount === 0 && count > 0) {
+        // Gunakan lastCount <= 0 agar saat baru pertama menyala (lastCount = -1) dan ada orang, lampu langsung hidup
+        if (lastCount <= 0 && count > 0) {
           if (roomAutoRef.current) {
             const isoNow = new Date().toISOString();
-            const updates: any = {};
             updates[`devices/${ROOM_CODE}-lamp/isOn`] = true;
             updates[`devices/${ROOM_CODE}-lamp/lastUpdated`] = isoNow;
             updates[`devices/${ROOM_CODE}-acFan/isOn`] = true;
             updates[`devices/${ROOM_CODE}-acFan/lastUpdated`] = isoNow;
             updates[`nodes/${NODE_ID}/relays/relay_1_lampu/is_on`] = true;
             updates[`nodes/${NODE_ID}/relays/relay_2_kipas/is_on`] = true;
-            
-            await update(ref(rtdb), updates);
-            await push(ref(rtdb, `logs/${NODE_ID}`), {
-              relay_id: "bulk",
-              action: "ON",
-              timestamp: Math.floor(Date.now() / 1000),
-              triggered_by: "AI Otonom (Web Vision)",
-              reason: "Orang Terdeteksi Masuk"
-            });
+            shouldPushLog = true;
           }
         }
 
@@ -199,6 +192,21 @@ export function GlobalAICamera() {
         } else {
           emptyRoomStartTimeRef.current = null;
         }
+
+        // Tembak sekaligus (Batch update) agar IoT merespon secara instan
+        await update(ref(rtdb), updates);
+
+        // Lempar log di background tanpa ditunggu
+        if (shouldPushLog) {
+          push(ref(rtdb, `logs/${NODE_ID}`), {
+            relay_id: "bulk",
+            action: "ON",
+            timestamp: Math.floor(now / 1000),
+            triggered_by: "AI Otonom (Web Vision)",
+            reason: "Orang Terdeteksi Masuk"
+          }).catch(console.error);
+        }
+
       } catch (err) {
         console.error("Error updating firebase:", err);
       } finally {
@@ -224,13 +232,15 @@ export function GlobalAICamera() {
             updates[`nodes/${NODE_ID}/relays/relay_2_kipas/is_on`] = false;
             
             await update(ref(rtdb), updates);
-            await push(ref(rtdb, `logs/${NODE_ID}`), {
+            
+            push(ref(rtdb, `logs/${NODE_ID}`), {
               relay_id: "bulk",
               action: "OFF",
               timestamp: Math.floor(now / 1000),
               triggered_by: "AI Otonom (Web Vision)",
               reason: `Ruangan kosong melampaui ${GRACE_PERIOD_MS/1000} detik`
-            });
+            }).catch(console.error);
+
             emptyRoomStartTimeRef.current = null;
           } catch (err) {
             console.error("Error shutting off:", err);

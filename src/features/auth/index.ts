@@ -3,6 +3,7 @@
 export { UserManagementView } from "./views/user-management-view"
 export type { UserRecord } from "./types/user"
 export { useUserManagement } from "./hooks/use-user-management"
+export { useUserManagementState } from "./hooks/use-user-management-state"
 export { useAccountSettings } from "./hooks/use-account-settings"
 export { useLogin } from "./hooks/use-login"
 export { RegisterUserForm } from "./components/user-management/register-user-form"

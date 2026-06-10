@@ -60,6 +60,14 @@ export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = f
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                       </linearGradient>
+                      <linearGradient id="colorAmpere" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorVolt" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                      </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
                     <XAxis
@@ -72,12 +80,24 @@ export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = f
                       minTickGap={30}
                     />
                     <YAxis
+                      yAxisId="left"
                       stroke="#4b5563"
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
                       tick={{ fill: '#6b7280' }}
                     />
+                    {isLiveMode && (
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke="#4b5563"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: '#6b7280' }}
+                      />
+                    )}
                     <RechartsTooltip 
                       contentStyle={{ 
                         backgroundColor: "rgba(9, 9, 11, 0.95)", 
@@ -92,14 +112,42 @@ export function UsagePatternChart({ data, chartVariants, isEmpty, isLiveMode = f
                       labelStyle={{ color: "#94a3b8", marginBottom: "4px" }}
                     />
                     <Area
+                      yAxisId="left"
                       type="monotone"
                       dataKey="watt"
+                      name="Power (W)"
                       stroke="#10b981"
                       strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorWatt)"
                       animationDuration={2000}
                     />
+                    {isLiveMode && (
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="ampere"
+                        name="Current (A)"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorAmpere)"
+                        animationDuration={2000}
+                      />
+                    )}
+                    {isLiveMode && (
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="volt"
+                        name="Voltage (V)"
+                        stroke="#f59e0b"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorVolt)"
+                        animationDuration={2000}
+                      />
+                    )}
                   </AreaChart>
                 </ResponsiveContainer>
               </motion.div>

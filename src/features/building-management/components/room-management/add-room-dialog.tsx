@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Building } from "@/features/building-management/types/building";
+import { Building } from "@/features/building-management";
 import { RoomForm } from "./room-form";
 
 interface AddRoomDialogProps {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 import { toast } from "sonner"
 import { rtdb } from "@/lib/firebase"
 import { ref, onValue } from "firebase/database"

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useBuildings } from "./use-buildings"
-import { Building, Room } from "@/features/building-management/types/building"
+import { Building, Room } from "@/features/building-management"
 import { toast } from "sonner"
 
 export function useRoomManagement() {
@@ -182,6 +182,14 @@ export function useRoomManagement() {
     setRoomContextBuilding(b); setRoomFormBuildingId(bId || ""); setViewedRoom(null); handleTriggerEditRoom(room)
   }
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const activeBuildingCount = new Set(allRooms.map(r => r.buildingId)).size
+  const isAddRoomDisabled = mounted ? buildingsList.length === 0 : false
+
   return {
     buildingsList, loading,
     isAddRoomOpen, setIsAddRoomOpen, roomFormBuildingId, setRoomFormBuildingId,
@@ -194,6 +202,6 @@ export function useRoomManagement() {
     paginatedRooms, allRooms, totalItems, totalPages, startIndex, endIndex,
     serverError, roomContextBuilding, setRoomContextBuilding,
     viewedRoom, setViewedRoom, handleViewRoomDetail, handleTriggerEditFromDetail,
-    formMaxFloors
+    formMaxFloors, mounted, activeBuildingCount, isAddRoomDisabled
   }
 }

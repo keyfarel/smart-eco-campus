@@ -1,6 +1,6 @@
 import fs from "fs"
 import path from "path"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 import { isFirebaseReady, db } from "@/lib/firebase"
 import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from "firebase/firestore"
 

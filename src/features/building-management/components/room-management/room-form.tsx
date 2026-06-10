@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building } from "@/features/building-management/types/building";
+import { Building } from "@/features/building-management";
 
 interface RoomFormProps {
   isAddingFromHeader?: boolean;

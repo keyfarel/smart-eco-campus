@@ -1,7 +1,7 @@
 "use client"
 
 import { DoorOpen, Users, Building2 } from "lucide-react"
-import { Room } from "@/features/building-management/types/building"
+import { Room } from "@/features/building-management"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface RoomMetricsProps {

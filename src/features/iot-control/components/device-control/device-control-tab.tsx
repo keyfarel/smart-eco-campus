@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
-import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import { useBuildings } from "@/features/building-management"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"

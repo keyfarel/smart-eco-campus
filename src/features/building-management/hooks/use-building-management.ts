@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useBuildings } from "./use-buildings"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 import { toast } from "sonner"
 
 export function useBuildingManagement() {

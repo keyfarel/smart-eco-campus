@@ -36,8 +36,7 @@ export default async function proxy(req: NextRequest) {
   // Daftar rute pasca-login yang dilindungi oleh proxy
   const protectedRoutes = [
     "/super-admin",
-    "/admin-gedung",
-    "/account"
+    "/admin-gedung"
   ];
 
   const isProtectedRoute = protectedRoutes.some(route =>
@@ -81,8 +80,6 @@ export const config = {
     "/super-admin/:path*",
     "/super-admin",
     "/admin-gedung/:path*",
-    "/admin-gedung",
-    "/account/:path*",
-    "/account"
+    "/admin-gedung"
   ],
 };

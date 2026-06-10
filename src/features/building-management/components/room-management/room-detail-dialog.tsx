@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Room } from "@/features/building-management/types/building";
+import { Room } from "@/features/building-management";
 
 interface RoomDetailDialogProps {
   room: (Room & { buildingName?: string; buildingId?: string }) | null;

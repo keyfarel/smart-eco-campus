@@ -1,7 +1,7 @@
 "use client"
 
 import { Building2, DoorOpen, Cpu } from "lucide-react"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface BuildingMetricsProps {

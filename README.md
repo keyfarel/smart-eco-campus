@@ -2,12 +2,6 @@
 
 🔗 **Live Deployment:** [https://smarteco-app.my.id/](https://smarteco-app.my.id/)
 
-## Directory Structure
-
-# Smart Eco Campus 🌍⚡
-
-🔗 **Live Deployment:** [https://smarteco-app.my.id/](https://smarteco-app.my.id/)
-
 **Smart Eco Campus** adalah sebuah platform sistem cerdas terintegrasi yang dirancang untuk mendigitalisasi, memantau, dan mengelola konsumsi energi serta fasilitas gedung di lingkungan kampus secara real-time. Sistem ini memadukan teknologi Internet of Things (IoT) dengan Artificial Intelligence (AI) untuk menciptakan ekosistem kampus yang hemat energi, efisien, dan modern.
 
 ## 🚀 Fitur Utama

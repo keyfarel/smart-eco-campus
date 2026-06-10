@@ -198,5 +198,48 @@ export function useExecutiveMetrics() {
     }
   }, [])
 
-  return metrics
+  const [isSparkRunning, setIsSparkRunning] = useState(false)
+  const [isClusterOffline, setIsClusterOffline] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string>("")
+
+  // Update timestamp when metrics change or Spark finishes
+  useEffect(() => {
+    setIsClusterOffline(false) // Auto-recover from offline state when realtime data flows
+    setLastUpdated(new Date().toLocaleString('id-ID', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }))
+  }, [metrics.energySaved, metrics.sparkStatus?.is_running, metrics.activeDatanodes])
+
+  const triggerSparkJob = async (toast: any) => {
+    setIsSparkRunning(true)
+    setIsClusterOffline(false)
+    toast.info("Menginisialisasi Apache Spark Cluster...")
+    
+    try {
+      const res = await fetch("/api/cron/trigger-spark", { method: "POST" })
+      const data = await res.json()
+      
+      if (res.ok) {
+        setIsClusterOffline(false)
+        toast.success("Big Data berhasil dihitung ulang! Dashboard ter-update.")
+      } else {
+        setIsClusterOffline(true)
+        toast.error(`Gagal menjalankan Spark: ${data.error}`)
+      }
+    } catch (error) {
+      setIsClusterOffline(true)
+      toast.error("Terjadi kesalahan koneksi! NameNode (Laptop) mungkin offline atau Tailscale terputus.")
+    } finally {
+      setIsSparkRunning(false)
+    }
+  }
+
+  return {
+    metrics,
+    isSparkRunning,
+    isClusterOffline,
+    lastUpdated,
+    triggerSparkJob
+  }
 }

@@ -41,7 +41,12 @@ export function useSuperAdminDashboard(initialTimeRange: string, rawLogs: any[],
       const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
       setLiveChartData(prev => {
-        const newDataPoint = { time: timeStr, watt: currentPower }
+        const newDataPoint = { 
+          time: timeStr, 
+          watt: currentPower,
+          ampere: realtimeStats.totalAmpere,
+          volt: realtimeStats.avgVoltage
+        }
         const nextData = [...prev, newDataPoint]
         if (nextData.length > 20) {
           return nextData.slice(nextData.length - 20)
@@ -77,6 +82,7 @@ export function useSuperAdminDashboard(initialTimeRange: string, rawLogs: any[],
     liveChartData,
     liveStats,
     isLiveMode,
-    displayIsEmpty
+    displayIsEmpty,
+    realtimeStats
   }
 }

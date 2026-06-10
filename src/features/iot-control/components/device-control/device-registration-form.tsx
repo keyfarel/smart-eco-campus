@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Cpu, Building2, Layers, DoorOpen, Users, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
-import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import { useBuildings } from "@/features/building-management"
 
 interface DeviceRegistrationFormProps {
   macAddress: string

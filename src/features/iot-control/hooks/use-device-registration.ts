@@ -34,6 +34,9 @@ export function useDeviceRegistration() {
         const registered: RegisteredDevice[] = []
 
         Object.keys(data).forEach((mac) => {
+          // Hanya proses data yang memiliki ID ESP32
+          if (!mac.includes("ESP32") && !mac.includes("esp32")) return;
+
           const node = data[mac]
           
           // Support both direct attributes (current Firebase schema) and metadata-nested attributes

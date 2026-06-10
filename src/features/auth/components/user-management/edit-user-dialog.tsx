@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { UserRecord } from "../../types/user"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter"
 
 interface EditUserDialogProps {
   editedUser: UserRecord | null
@@ -206,6 +207,7 @@ export function EditUserDialog({
                     {editShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {hasEditPassword && <PasswordStrengthMeter password={editPassword} />}
                 {showEditPasswordError && (
                   <p className="text-[10px] text-red-400 font-medium flex items-center gap-1 mt-1">
                     <AlertCircle className="w-3 h-3 text-red-500" />

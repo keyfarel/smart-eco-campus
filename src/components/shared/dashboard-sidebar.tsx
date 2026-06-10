@@ -39,8 +39,8 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useBuildings } from "@/features/building-management/hooks/use-buildings";
-import { useDeviceRegistration } from "@/features/iot-control/hooks/use-device-registration";
+import { useBuildings } from "@/features/building-management";
+import { useDeviceRegistration } from "@/features/iot-control";
 
 // Struktur antarmuka menu untuk fleksibilitas modular
 interface SubMenuItem {

@@ -4,19 +4,28 @@ import { Settings } from "lucide-react"
 import { useAccountSettings } from "../hooks/use-account-settings"
 import { ProfileCard } from "../components/account-settings/profile-card"
 import { SettingsForm } from "../components/account-settings/settings-form"
+import { useBuildings } from "@/features/building-management"
 
 interface AccountSettingsViewProps {
   currentName?: string
   currentEmail?: string
   role?: string
+  assignedGedungId?: string
 }
 
 export function AccountSettingsView({ 
   currentName = "",
   currentEmail = "",
-  role = ""
+  role = "",
+  assignedGedungId = ""
 }: AccountSettingsViewProps) {
   const settings = useAccountSettings({ currentName, currentEmail })
+  const { buildingsList } = useBuildings()
+
+  // Resolve building name based on ID
+  const buildingLocation = assignedGedungId 
+    ? buildingsList.find(b => b.id === assignedGedungId)?.name || assignedGedungId
+    : undefined
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -32,13 +41,15 @@ export function AccountSettingsView({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-        {/* Main Form */}
-        <SettingsForm {...settings} />
+      <div className="flex flex-col gap-6 md:flex-row-reverse">
+        {/* Side Info Panel (Top on Mobile, Right on Desktop) */}
+        <div className="w-full md:w-[300px] shrink-0 space-y-6">
+          <ProfileCard name={settings.name} email={settings.email} role={role} location={buildingLocation} />
+        </div>
 
-        {/* Side Info Panel */}
-        <div className="space-y-6">
-          <ProfileCard name={settings.name} email={settings.email} role={role} />
+        {/* Main Form (Bottom on Mobile, Left on Desktop) */}
+        <div className="w-full min-w-0 flex-1">
+          <SettingsForm {...settings} />
         </div>
       </div>
     </div>
