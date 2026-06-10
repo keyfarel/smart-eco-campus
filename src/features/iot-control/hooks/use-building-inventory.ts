@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useBuildings } from "@/features/building-management/hooks/use-buildings";
+import { useBuildings } from "@/features/building-management";
 import { useBuildingTelemetry } from "./use-building-telemetry";
 
 export type RoomStatus = "online" | "offline" | "passive";

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Building, Room } from "@/features/building-management/types/building"
+import { Building, Room } from "@/features/building-management"
 import { rtdb } from "@/lib/firebase"
 import { ref, onValue } from "firebase/database"
 

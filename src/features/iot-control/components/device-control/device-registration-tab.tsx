@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useDeviceRegistration } from "../../hooks/use-device-registration"
-import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import { useBuildings } from "@/features/building-management"
 import { UnregisteredAlert } from "./unregistered-alert"
 import { DeviceRegistrationForm } from "./device-registration-form"
 import { RegisteredDevicesList } from "./registered-devices-list"

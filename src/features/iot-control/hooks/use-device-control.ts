@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useDevices } from "./use-devices";
-import { useBuildings } from "@/features/building-management/hooks/use-buildings";
+import { useBuildings } from "@/features/building-management";
 
 export const useDeviceControl = () => {
   const { data: session } = useSession();

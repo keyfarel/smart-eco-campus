@@ -6,7 +6,7 @@ import { useDevices } from "./use-devices"
 import { toast } from "sonner"
 
 import { useSession } from "next-auth/react"
-import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import { useBuildings } from "@/features/building-management"
 
 export function useAdminGedung() {
   const { data: session } = useSession()

@@ -205,6 +205,18 @@ export function useSystemLogs() {
     return { onActions, offActions, total: flattenedLogs.length }
   }, [flattenedLogs])
 
+  const isSuperAdmin = userRole === "SUPER_ADMIN"
+
+  const handleResetFilters = () => {
+    setSearchQuery("")
+    setDateFilter("all")
+    setActionFilter("all")
+    setTriggerFilter("all")
+    if (isSuperAdmin) {
+      setBuildingFilter("all")
+    }
+  }
+
   return {
     loading,
     searchQuery,
@@ -224,6 +236,8 @@ export function useSystemLogs() {
     paginatedLogs,
     stats,
     userRole,
+    isSuperAdmin,
     assignedGedungName,
+    handleResetFilters,
   }
 }

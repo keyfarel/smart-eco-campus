@@ -1,7 +1,7 @@
 "use client"
 
 import { DoorOpen, Pencil, Trash2, Building2, Layers, Users, Eye } from "lucide-react"
-import { Room } from "@/features/building-management/types/building"
+import { Room } from "@/features/building-management"
 import { Button } from "@/components/ui/button"
 import {
   Table,

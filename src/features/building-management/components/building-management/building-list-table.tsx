@@ -1,7 +1,7 @@
 "use client"
 
 import { Building2, Eye, Pencil, Trash2, Layers, DoorOpen } from "lucide-react"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 import { Button } from "@/components/ui/button"
 import {
   Table,

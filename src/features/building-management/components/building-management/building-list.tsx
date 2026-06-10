@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Building2, Layers, DoorOpen, Zap, Pencil, Trash2 } from "lucide-react"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
 
 interface BuildingListProps {
   loading: boolean

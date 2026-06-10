@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { UserRecord } from "../types/user"
-import { useBuildings } from "@/features/building-management/hooks/use-buildings"
+import { useBuildings } from "@/features/building-management"
 
 export function useUserManagement() {
   const { buildingsList } = useBuildings()

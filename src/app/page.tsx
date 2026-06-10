@@ -14,8 +14,6 @@ export default async function Home() {
 
   if (userRole === "SUPER_ADMIN") {
     redirect("/super-admin")
-  } else if (userRole === "EXECUTIVE") {
-    redirect("/executive")
   } else {
     redirect("/admin-gedung")
   }

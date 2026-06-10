@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { StatsCards, UsagePatternChart, type ChartData, type AnalyticsStats } from "@/features/analytics"
 import { useSuperAdminDashboard } from "../hooks/use-super-admin-dashboard"
 import { SuperAdminHeader } from "../components/super-admin/super-admin-header"
-
+import { LiveStatsGrid } from "../components/super-admin/live-stats-grid"
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -53,11 +53,15 @@ export function SuperAdminView({
           />
 
           <div className="flex flex-col gap-4">
-            <StatsCards 
-              stats={state.isLiveMode ? state.liveStats : analyticsStats} 
-              cardVariants={cardVariants} 
-              isLiveMode={state.isLiveMode}
-            />
+            {state.isLiveMode ? (
+              <LiveStatsGrid realtimeStats={state.realtimeStats} cardVariants={cardVariants} />
+            ) : (
+              <StatsCards 
+                stats={analyticsStats} 
+                cardVariants={cardVariants} 
+                isLiveMode={false}
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-6 pb-12">

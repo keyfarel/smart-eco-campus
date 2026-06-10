@@ -15,6 +15,7 @@ export default async function AccountPage() {
       currentName={session.user.name || ""} 
       currentEmail={session.user.email || ""} 
       role={(session.user as any).role || ""}
+      assignedGedungId={(session.user as any).assignedGedung || ""}
     />
   )
 }

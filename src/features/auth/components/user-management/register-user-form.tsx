@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select"
 import { User, UserPlus, Mail, Building as BuildingIcon, CheckCircle2, AlertCircle, Loader2, Lock, Eye, EyeOff } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Building } from "@/features/building-management/types/building"
+import { Building } from "@/features/building-management"
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter"
 
 interface RegisterUserFormProps {
   name: string
@@ -217,6 +218,7 @@ export function RegisterUserForm({
                 {showPassword ? <EyeOff className="w-4 h-4 text-zinc-500" /> : <Eye className="w-4 h-4 text-zinc-500" />}
               </button>
             </div>
+            {isPasswordTouched && <PasswordStrengthMeter password={password} />}
             {showPasswordError && (
               <p className="text-[11px] text-red-400 font-medium flex items-center gap-1.5 mt-1.5 animate-in fade-in slide-in-from-top-1">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />

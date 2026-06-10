@@ -10,6 +10,8 @@ export function useSuperAdminStats() {
     activeNodes: 0,
     totalDevices: 0,
     powerLoad: 0,
+    totalAmpere: 0,
+    avgVoltage: 220,
     userCount: 0,
     financialSaved: 0,
     energySaved: 0,
@@ -94,16 +96,20 @@ export function useSuperAdminStats() {
 
       // Calculate stats from real-time data + master data
       const devicesList = Object.values(realtimeData.devices)
-      const nodesList = Object.values(realtimeData.nodes)
+      
+      // Filter hanya node yang ID-nya mengandung "ESP32"
+      const validNodes = Object.entries(realtimeData.nodes)
+        .filter(([key, _]) => key.includes("ESP32") || key.includes("esp32"))
+        .map(([_, val]) => val)
 
       // Active Nodes = Registered ESP32 modules currently in RTDB
-      let activeNodesCount = nodesList.filter((n: any) => n.metadata?.is_registered !== false).length
+      let activeNodesCount = validNodes.filter((n: any) => n.is_registered !== false && n.metadata?.is_registered !== false).length
 
       // Total Devices = Total expected relays across all master rooms
       const totalDevicesCount = totalMasterRooms * 3 
 
-      // Power Load = Calculate from `nodesList` telemetry power
-      let currentPowerLoad = nodesList.reduce((sum, n: any) => sum + (n.telemetry?.power || 0), 0)
+      // Power Load = Calculate from `validNodes` telemetry power
+      let currentPowerLoad = validNodes.reduce((sum, n: any) => sum + (n.telemetry?.power || 0), 0)
 
       // Analytics calculation (Energy & Finance) STRICTLY FROM REAL FIREBASE DATA
       let totalCapacity = 0
@@ -111,8 +117,8 @@ export function useSuperAdminStats() {
       let financialSaved = 0
 
       // Calculate REAL savings from connected ESP32 nodes ONLY
-      if (nodesList.length > 0) {
-        totalCapacity = nodesList.reduce((sum, n: any) => sum + (n.metadata?.capacity || 0), 0) * 100 // Estimasi 100W per kapasitas ruangan
+      if (validNodes.length > 0) {
+        totalCapacity = validNodes.reduce((sum, n: any) => sum + (n.capacity || n.metadata?.capacity || 0), 0) * 100 // Estimasi 100W per kapasitas ruangan
         const powerSavedW = Math.max(0, totalCapacity - currentPowerLoad)
         
         // Penghematan riil dihitung dari hardware yang benar-benar tersambung
@@ -120,10 +126,29 @@ export function useSuperAdminStats() {
         financialSaved = Math.round(energySaved * 1444)
       }
 
+      // Calculate total Ampere and average Voltage
+      let totalAmpere = 0;
+      let totalVoltage = 0;
+      let activeVoltageNodes = 0;
+      
+      validNodes.forEach((n: any) => {
+        if (n.telemetry) {
+          totalAmpere += n.telemetry.current || 0;
+          if (n.telemetry.voltage > 0) {
+            totalVoltage += n.telemetry.voltage;
+            activeVoltageNodes++;
+          }
+        }
+      });
+      
+      const avgVoltage = activeVoltageNodes > 0 ? totalVoltage / activeVoltageNodes : 220; // Default to 220 if no data
+
       setStats({
         activeNodes: activeNodesCount,
         totalDevices: totalDevicesCount,
         powerLoad: currentPowerLoad,
+        totalAmpere: parseFloat(totalAmpere.toFixed(2)),
+        avgVoltage: Math.round(avgVoltage),
         userCount: users.length,
         energySaved,
         financialSaved,
